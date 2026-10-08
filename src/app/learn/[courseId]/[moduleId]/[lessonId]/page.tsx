@@ -25,6 +25,7 @@ import { ICourse, ICourseModule, ILesson } from "@/types/learning";
 import ExecutionVisualizer from "@/components/ExecutionVisualizer";
 import { LoadingState, ErrorState } from "@/components/StatusState";
 import { LessonContentSkeleton } from "@/components/Skeletons";
+import CourseComingSoon from "@/components/learning/CourseComingSoon";
 
 export default function LessonDetailPage() {
   const params = useParams();
@@ -83,6 +84,14 @@ export default function LessonDetailPage() {
 
   if (loading) return <LessonContentSkeleton />;
   if (!course || !currentModule || !lesson) {
+    const rawCourse = course || getCourseById(courseId);
+    if (rawCourse && (rawCourse.isAvailable === false || rawCourse.status === "coming_soon")) {
+      return (
+        <div className="min-h-screen bg-[#0a0a0b] text-[#f4f4f5] py-8 px-4 sm:px-6 max-w-5xl mx-auto w-full font-sans">
+          <CourseComingSoon courseTitle={rawCourse.title} language={rawCourse.language} icon={rawCourse.icon} />
+        </div>
+      );
+    }
     return <ErrorState title="Lesson Not Found" message="The requested lesson does not exist." />;
   }
 

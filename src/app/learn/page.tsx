@@ -121,7 +121,8 @@ export default function CoursesDirectoryPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCourses.map((course) => {
-            const hasStarted = (course.progressPercent || 0) > 0;
+            const isAvailable = course.isAvailable !== false && course.status !== "coming_soon";
+            const hasStarted = isAvailable && (course.progressPercent || 0) > 0;
             return (
               <div
                 key={course.id}
@@ -143,10 +144,16 @@ export default function CoursesDirectoryPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 text-[11px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/40 px-2 py-0.5 rounded-full font-bold">
-                      <Zap className="w-3 h-3" />
-                      <span>+{course.totalXp} XP</span>
-                    </div>
+                    {isAvailable ? (
+                      <div className="flex items-center gap-1 text-[11px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/40 px-2 py-0.5 rounded-full font-bold">
+                        <Zap className="w-3 h-3" />
+                        <span>+{course.totalXp} XP</span>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800/80 border border-zinc-700/60 px-2.5 py-0.5 rounded-full font-medium">
+                        Coming Soon
+                      </span>
+                    )}
                   </div>
 
                   <h3 className="text-lg font-bold font-mono text-white group-hover:text-cyan-400 transition mb-2">
@@ -188,10 +195,17 @@ export default function CoursesDirectoryPage() {
                   )}
 
                   <Link href={`/learn/${course.courseId}`} className="block">
-                    <button className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-mono font-semibold rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-2 group-hover:bg-cyan-500 group-hover:text-black">
-                      <span>{hasStarted ? "Continue Track" : "Start Course"}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+                    {isAvailable ? (
+                      <button className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-mono font-semibold rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-2 group-hover:bg-cyan-500 group-hover:text-black">
+                        <span>{hasStarted ? "Continue Track" : "Start Course"}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    ) : (
+                      <button className="w-full py-2.5 bg-zinc-800/40 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 font-mono font-medium rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-2 border border-zinc-800">
+                        <span>Coming Soon</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </Link>
                 </div>
               </div>

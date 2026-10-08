@@ -15,6 +15,7 @@ import {
 import { getCourseById } from "@/data/courses";
 import { ICourse, ICourseModule } from "@/types/learning";
 import { LoadingState, ErrorState } from "@/components/StatusState";
+import CourseComingSoon from "@/components/learning/CourseComingSoon";
 
 export default function ModuleCompletionPage() {
   const params = useParams();
@@ -39,6 +40,24 @@ export default function ModuleCompletionPage() {
   }, [courseId, moduleId]);
 
   if (loading) return <LoadingState message="Loading module summary..." />;
+
+  if (course && (course.isAvailable === false || course.status === "coming_soon")) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0b] text-[#f4f4f5] py-8 px-4 sm:px-6 max-w-5xl mx-auto w-full font-sans">
+        <CourseComingSoon courseTitle={course.title} language={course.language} icon={course.icon} />
+      </div>
+    );
+  }
+
+  const rawCourse = getCourseById(courseId);
+  if (rawCourse && (rawCourse.isAvailable === false || rawCourse.status === "coming_soon")) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0b] text-[#f4f4f5] py-8 px-4 sm:px-6 max-w-5xl mx-auto w-full font-sans">
+        <CourseComingSoon courseTitle={rawCourse.title} language={rawCourse.language} icon={rawCourse.icon} />
+      </div>
+    );
+  }
+
   if (!course || !currentModule) return <ErrorState title="Module Not Found" />;
 
   return (

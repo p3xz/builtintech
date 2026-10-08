@@ -134,6 +134,8 @@ export interface ICourse {
   whatYouWillLearn: string[];
   isEnrolled?: boolean;
   progressPercent?: number;
+  isAvailable?: boolean;
+  status?: "available" | "coming_soon";
 }
 
 export interface IUserLearningProgress {

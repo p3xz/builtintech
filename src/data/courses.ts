@@ -15,6 +15,8 @@ export const COURSES: ICourse[] = [
     bannerGradient: "from-emerald-500/20 via-cyan-500/10 to-transparent",
     estimatedHours: 10,
     totalXp: 1200,
+    isAvailable: true,
+    status: "available",
     whatYouWillLearn: [
       "Python 3 syntax, dynamic typing, and variables",
       "Conditional branching with if, elif, and else",
@@ -535,6 +537,8 @@ export const COURSES: ICourse[] = [
     bannerGradient: "from-amber-500/20 via-orange-500/10 to-transparent",
     estimatedHours: 16,
     totalXp: 1800,
+    isAvailable: false,
+    status: "coming_soon",
     whatYouWillLearn: [
       "JVM memory model: heap, stack, and garbage collection",
       "Classes, encapsulation, immutability, and records",
@@ -575,6 +579,8 @@ export const COURSES: ICourse[] = [
     bannerGradient: "from-blue-600/20 via-cyan-500/10 to-transparent",
     estimatedHours: 18,
     totalXp: 2000,
+    isAvailable: false,
+    status: "coming_soon",
     whatYouWillLearn: [
       "Memory layout: stack, heap, and pointer arithmetic",
       "Preprocessor macros, structs, padding, and binary file I/O",
@@ -614,6 +620,8 @@ export const COURSES: ICourse[] = [
     bannerGradient: "from-indigo-600/20 via-purple-500/10 to-transparent",
     estimatedHours: 20,
     totalXp: 2400,
+    isAvailable: false,
+    status: "coming_soon",
     whatYouWillLearn: [
       "Bit manipulation, masks, bitfields, and endianness",
       "Virtual memory pages, segmentation, and mmap",
@@ -649,16 +657,24 @@ const COURSE_ALIASES: Record<string, string> = {
   python: "python-fundamentals",
   course_python: "python-fundamentals",
   "python-fundamentals": "python-fundamentals",
+  "python-basics": "python-fundamentals",
   java: "java-core",
   course_java: "java-core",
   "java-core": "java-core",
+  "java-fundamentals": "java-core",
+  "java-oop": "java-core",
   cpp: "cpp-systems",
   "c++": "cpp-systems",
+  "c-cpp": "cpp-systems",
+  "c-and-cpp": "cpp-systems",
   course_cpp: "cpp-systems",
   "cpp-systems": "cpp-systems",
+  "cpp-foundations": "cpp-systems",
   c: "c-low-level",
   course_c: "c-low-level",
   "c-low-level": "c-low-level",
+  "c-programming": "c-low-level",
+  "c-systems": "c-low-level",
 };
 
 export function getCourseById(courseId: string): ICourse | undefined {
@@ -672,6 +688,12 @@ export function getCourseById(courseId: string): ICourse | undefined {
       c.slug === targetId ||
       c.language.toLowerCase() === normalized
   );
+}
+
+export function isCourseAvailable(courseId: string): boolean {
+  const course = getCourseById(courseId);
+  if (!course) return false;
+  return course.isAvailable !== false && course.status !== "coming_soon";
 }
 
 export function getCourseByLanguageAndLevel(language: SupportedLanguage, level?: CourseLevel): ICourse | undefined {

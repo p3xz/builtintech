@@ -23,6 +23,7 @@ import { fetchUserProgress, getDecoratedCourse } from "@/services/courseService"
 import { ICourse, ICourseModule, ILesson } from "@/types/learning";
 import { LoadingState, ErrorState } from "@/components/StatusState";
 import { CourseOverviewSkeleton } from "@/components/Skeletons";
+import CourseComingSoon from "@/components/learning/CourseComingSoon";
 
 export default function CourseOverviewPage() {
   const params = useParams();
@@ -38,7 +39,38 @@ export default function CourseOverviewPage() {
     async function loadCourse() {
       const rawCourse = getCourseById(courseId);
       if (!rawCourse) {
+        // If the route name clearly matches upcoming tracks, handle gracefully
+        const normalized = courseId.toLowerCase().trim();
+        if (normalized.includes("java") || normalized.includes("cpp") || normalized.includes("c-") || normalized === "c") {
+          setCourse({
+            id: normalized,
+            courseId: normalized,
+            title: normalized.includes("java") ? "Java Object-Oriented Core" : normalized.includes("cpp") ? "C & C++ Systems Foundations" : "C Low-Level Programming",
+            slug: normalized,
+            language: normalized.includes("java") ? "java" : normalized.includes("cpp") ? "cpp" : "c",
+            level: "Intermediate",
+            tagline: "",
+            description: "",
+            icon: normalized.includes("java") ? "☕" : normalized.includes("cpp") ? "⚙️" : "⚡",
+            bannerGradient: "",
+            estimatedHours: 15,
+            totalXp: 1800,
+            modules: [],
+            whatYouWillLearn: [],
+            isAvailable: false,
+            status: "coming_soon",
+          });
+          setLoading(false);
+          return;
+        }
         setError("Course not found.");
+        setLoading(false);
+        return;
+      }
+
+      // If course is marked as coming soon, set it directly
+      if (rawCourse.isAvailable === false || rawCourse.status === "coming_soon") {
+        setCourse(rawCourse);
         setLoading(false);
         return;
       }
@@ -52,6 +84,29 @@ export default function CourseOverviewPage() {
   }, [courseId]);
 
   if (loading) return <CourseOverviewSkeleton />;
+
+  // Render polished Coming Soon state for non-available tracks
+  if (course && (course.isAvailable === false || course.status === "coming_soon")) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0b] text-[#f4f4f5] py-8 px-4 sm:px-6 max-w-5xl mx-auto w-full font-sans">
+        <div className="mb-6">
+          <Link
+            href="/learn"
+            className="inline-flex items-center gap-1.5 text-xs font-mono text-zinc-400 hover:text-white transition"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to All Courses</span>
+          </Link>
+        </div>
+        <CourseComingSoon
+          courseTitle={course.title}
+          language={course.language}
+          icon={course.icon}
+        />
+      </div>
+    );
+  }
+
   if (error || !course) return <ErrorState title="Course Not Found" message="We couldn't find this course curriculum." />;
 
   // Find next actionable lesson or module

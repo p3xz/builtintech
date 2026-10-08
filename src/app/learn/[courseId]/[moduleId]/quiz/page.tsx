@@ -10,6 +10,7 @@ import { ICourse, ICourseModule } from "@/types/learning";
 import ModuleQuizRunner from "@/components/ModuleQuizRunner";
 import { LoadingState, ErrorState } from "@/components/StatusState";
 import { QuizSkeleton } from "@/components/Skeletons";
+import CourseComingSoon from "@/components/learning/CourseComingSoon";
 
 export default function ModuleQuizPage() {
   const params = useParams();
@@ -34,6 +35,11 @@ export default function ModuleQuizPage() {
         setCourse(c);
         setCurrentModule(m);
 
+        if (c.isAvailable === false || c.status === "coming_soon") {
+          setLoading(false);
+          return;
+        }
+
         const progress = await fetchUserProgress();
         // Quiz is accessible if all lessons in module are complete OR if already previously completed/passed
         const allLessonsDone =
@@ -55,6 +61,24 @@ export default function ModuleQuizPage() {
   }, [courseId, moduleId]);
 
   if (loading) return <QuizSkeleton />;
+
+  if (course && (course.isAvailable === false || course.status === "coming_soon")) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0b] text-[#f4f4f5] py-8 px-4 sm:px-6 max-w-5xl mx-auto w-full font-sans">
+        <CourseComingSoon courseTitle={course.title} language={course.language} icon={course.icon} />
+      </div>
+    );
+  }
+
+  const rawCourse = getCourseById(courseId);
+  if (rawCourse && (rawCourse.isAvailable === false || rawCourse.status === "coming_soon")) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0b] text-[#f4f4f5] py-8 px-4 sm:px-6 max-w-5xl mx-auto w-full font-sans">
+        <CourseComingSoon courseTitle={rawCourse.title} language={rawCourse.language} icon={rawCourse.icon} />
+      </div>
+    );
+  }
+
   if (!course || !currentModule) return <ErrorState title="Quiz Not Found" />;
 
   // Find next module ID if available
