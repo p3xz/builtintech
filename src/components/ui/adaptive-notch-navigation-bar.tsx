@@ -56,7 +56,7 @@ export function NotchLeftWing({
       fill="none"
       shapeRendering="geometricPrecision"
       className={cn(
-        "pointer-events-none absolute right-full size-2.5 md:size-4 overflow-visible select-none text-zinc-950 transition-colors duration-200 dark:text-zinc-200",
+        "pointer-events-none absolute right-full size-2.5 md:size-4 overflow-visible select-none text-zinc-950 transition-colors duration-200",
         isBottom ? "bottom-0" : "top-0",
         className
       )}
@@ -88,7 +88,7 @@ export function NotchRightWing({
       fill="none"
       shapeRendering="geometricPrecision"
       className={cn(
-        "pointer-events-none absolute left-full size-2.5 md:size-4 overflow-visible select-none text-zinc-950 transition-colors duration-200 dark:text-zinc-200",
+        "pointer-events-none absolute left-full size-2.5 md:size-4 overflow-visible select-none text-zinc-950 transition-colors duration-200",
         isBottom ? "bottom-0" : "top-0",
         className
       )}
@@ -120,7 +120,7 @@ export function NotchCornerLeftWing({
       fill="none"
       shapeRendering="geometricPrecision"
       className={cn(
-        "pointer-events-none absolute left-0 size-2.5 md:size-4 overflow-visible select-none text-zinc-950 transition-colors duration-200 dark:text-zinc-200",
+        "pointer-events-none absolute left-0 size-2.5 md:size-4 overflow-visible select-none text-zinc-950 transition-colors duration-200",
         isBottom ? "bottom-full" : "top-full",
         className
       )}
@@ -152,7 +152,7 @@ export function NotchCornerRightWing({
       fill="none"
       shapeRendering="geometricPrecision"
       className={cn(
-        "pointer-events-none absolute right-0 size-2.5 md:size-4 overflow-visible select-none text-zinc-950 transition-colors duration-200 dark:text-zinc-200",
+        "pointer-events-none absolute right-0 size-2.5 md:size-4 overflow-visible select-none text-zinc-950 transition-colors duration-200",
         isBottom ? "bottom-full" : "top-full",
         className
       )}
