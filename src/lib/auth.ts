@@ -145,8 +145,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token.userId || token.email) {
         try {
           await connectToDatabase();
-          const query = token.userId ? { _id: token.userId } : { email: token.email?.toLowerCase().trim() };
-          const dbUser = await User.findOne(query).lean();
+          let dbUser = null;
+          // token.userId may be the OAuth provider ID, not a Mongo ObjectId
+          try {
+            const query = token.userId ? { _id: token.userId } : { email: token.email?.toLowerCase().trim() };
+            dbUser = await User.findOne(query).lean();
+          } catch {
+            dbUser = null;
+          }
+          if (!dbUser && token.email) {
+            dbUser = await User.findOne({ email: token.email.toLowerCase().trim() }).lean();
+          }
+          if (!dbUser && (token as any).providerAccountId) {
+            dbUser = await User.findOne({ providerAccountId: (token as any).providerAccountId }).lean();
+          }
           if (dbUser) {
             const isInitialAdmin = dbUser.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase();
             token.userId = dbUser._id.toString();
