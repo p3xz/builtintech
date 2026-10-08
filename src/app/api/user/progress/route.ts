@@ -12,24 +12,44 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const defaultProgress = {
+    userId: session.user.id,
+    username: session.user.username || "user",
+    preferredLanguage: "python",
+    experienceLevel: "Beginner",
+    enrolledCourseIds: [],
+    completedLessonIds: [],
+    completedModuleIds: [],
+    passedQuizIds: [],
+    solvedCases: [],
+    architectCompletedPhases: {},
+    dailyMissionCurrent: 0,
+    dailyMissionCompleted: false,
+  };
+
   try {
     await connectToDatabase();
 
     let learning = await UserLearning.findOne({ userId: session.user.id });
 
     if (!learning) {
-      learning = await UserLearning.create({
-        userId: session.user.id,
-        username: session.user.username || "user",
-        enrolledCourseIds: [],
-        completedLessonIds: [],
-        completedModuleIds: [],
-        passedQuizIds: [],
-        solvedCases: [],
-        architectCompletedPhases: {},
-        dailyMissionCurrent: 0,
-        dailyMissionCompleted: false,
-      });
+      try {
+        learning = await UserLearning.create({
+          userId: session.user.id,
+          username: session.user.username || "user",
+          enrolledCourseIds: [],
+          completedLessonIds: [],
+          completedModuleIds: [],
+          passedQuizIds: [],
+          solvedCases: [],
+          architectCompletedPhases: {},
+          dailyMissionCurrent: 0,
+          dailyMissionCompleted: false,
+        });
+      } catch (createErr) {
+        console.error("Failed to create UserLearning, using default:", createErr);
+        return NextResponse.json({ success: true, progress: defaultProgress });
+      }
     }
 
     const dbUser = await User.findById(session.user.id);
@@ -57,9 +77,9 @@ export async function GET() {
         longestStreak: dbUser?.longestStreak || 0,
       },
     });
-  } catch (error) {
+    } catch (error) {
     console.error("Error retrieving user progress:", error);
-    return NextResponse.json({ error: "Failed to fetch user progress" }, { status: 500 });
+    return NextResponse.json({ success: true, progress: defaultProgress });
   }
 }
 
