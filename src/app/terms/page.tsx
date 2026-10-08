@@ -5,7 +5,7 @@ import { ArrowLeft, FileText, Shield, Scale, Lock, AlertTriangle } from "lucide-
 
 export const metadata: Metadata = {
   title: "Terms of Service | Built In Tech",
-  description: "Terms of Service governing the use of the Built In Tech / CodeForge platform, educational modules, sandboxed code execution, and 1v1 live duels.",
+  description: "Terms of Service governing the use of the Built In Tech platform, educational modules, sandboxed code execution, and 1v1 live duels.",
 };
 
 export default function TermsPage() {
@@ -38,7 +38,7 @@ export default function TermsPage() {
           {/* Introduction */}
           <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-2xl">
             <p className="text-sm font-medium text-white leading-normal">
-              Welcome to CodeForge / Built In Tech!
+              Welcome to Built In Tech!
             </p>
             <p className="text-zinc-400">
               These Terms of Service (&quot;Terms&quot;) and Privacy Policy govern your use of the platform, website, and related services (collectively, the &quot;Service&quot;), a project developed during the KJU Hacktoberfest Hack Day 2026. By accessing or using the Service, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use the Service.
@@ -63,7 +63,7 @@ export default function TermsPage() {
               <h2>2. Description of Service</h2>
             </div>
             <p className="text-zinc-400">
-              CodeForge is an educational and competitive programming platform. We provide interactive coding lessons, quizzes, and live 1v1 coding duels. Supported languages include Python, HTML, CSS, JavaScript, SQL, Java, C, C++, C#, PHP, TypeScript, Swift, and Ruby.
+              Built In Tech is an educational and competitive programming platform. We provide interactive coding lessons, quizzes, and live 1v1 coding duels. Supported languages include Python, HTML, CSS, JavaScript, SQL, Java, C, C++, C#, PHP, TypeScript, Swift, and Ruby.
             </p>
           </section>
 
