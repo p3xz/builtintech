@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRoom, setRoom } from "@/lib/rooms";
+import { getProblemForJudging } from "@/lib/problems";
 import { getServerProblem } from "@/data/problems";
-import { executeCodeOnlineCompilerSync } from "@/lib/onlinecompiler";
+import { executeCodeOnlineCompilerSyncWithLang, normalizeOutput } from "@/lib/onlinecompiler";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function POST(
   request: NextRequest,
@@ -10,7 +14,7 @@ export async function POST(
   try {
     const { roomCode } = await context.params;
     const body = await request.json();
-    const { playerName, code } = body;
+    const { playerName, code, language = "python" } = body;
 
     if (!roomCode) {
       return NextResponse.json(
@@ -58,11 +62,21 @@ export async function POST(
       );
     }
 
-    const problem = getServerProblem(room.problemId);
-    if (!problem) {
+    // Load problem test cases
+    const fullProblem = await getProblemForJudging(room.problemId);
+    const serverProb = getServerProblem(room.problemId);
+
+    const testSuite =
+      fullProblem?.hiddenTestCases && fullProblem.hiddenTestCases.length > 0
+        ? fullProblem.hiddenTestCases.map((t) => ({ input: t.input, expected: t.expectedOutput }))
+        : serverProb?.hiddenTests ||
+          fullProblem?.examples?.map((e) => ({ input: e.input, expected: e.output })) ||
+          [];
+
+    if (testSuite.length === 0) {
       return NextResponse.json(
-        { error: `Problem '${room.problemId}' not found` },
-        { status: 404 }
+        { error: `No test suite available for problem '${room.problemId}'` },
+        { status: 500 }
       );
     }
 
@@ -80,14 +94,18 @@ export async function POST(
     const targetPlayer = isP1 ? room.player1 : room.player2!;
 
     let testsPassed = 0;
-    const totalTests = problem.hiddenTests.length;
+    const totalTests = testSuite.length;
 
-    for (const test of problem.hiddenTests) {
-      const execResult = await executeCodeOnlineCompilerSync(code, test.input);
+    for (const test of testSuite) {
+      const execResult = await executeCodeOnlineCompilerSyncWithLang(
+        language,
+        code,
+        test.input
+      );
 
-      if (execResult.success) {
-        const normalizedActual = String(execResult.stdout ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim().split("\n").map((l) => l.trimEnd()).join("\n");
-        const normalizedExpected = String(test.expected ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim().split("\n").map((l) => l.trimEnd()).join("\n");
+      if (execResult.success && !execResult.compilationError && !execResult.runtimeError && !execResult.isTimeout) {
+        const normalizedActual = normalizeOutput(execResult.stdout);
+        const normalizedExpected = normalizeOutput(test.expected);
 
         if (normalizedActual === normalizedExpected) {
           testsPassed++;
@@ -97,15 +115,18 @@ export async function POST(
 
     const isAllPassed = totalTests > 0 && testsPassed === totalTests;
 
-    // Update player state
+    // Update target player's state
     targetPlayer.code = code;
     targetPlayer.testsPassed = testsPassed;
     targetPlayer.totalTests = totalTests;
     targetPlayer.submittedAt = Date.now();
     targetPlayer.status = isAllPassed ? "SOLVED" : "SUBMITTED";
 
-    // If both players solved, finish the room
-    if (room.player1?.status === "SOLVED" && room.player2?.status === "SOLVED") {
+    // If both players have completed (solved or submitted) or if someone solved all
+    const p1Done = room.player1?.status === "SOLVED" || room.player1?.status === "SUBMITTED";
+    const p2Done = room.player2 && (room.player2.status === "SOLVED" || room.player2.status === "SUBMITTED");
+
+    if (p1Done && p2Done) {
       room.status = "FINISHED";
     }
 
@@ -117,7 +138,7 @@ export async function POST(
       success: isAllPassed,
     });
   } catch (err: unknown) {
-    console.error("Error submitting code:", err);
+    console.error("Error submitting code in duel:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

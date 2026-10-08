@@ -3,8 +3,30 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Editor from "@monaco-editor/react";
-import { ClientRoom, ClientPlayerState, PlayerStatus } from "@/types/room";
+import { Play, Send, Terminal, AlertTriangle, CheckCircle2, XCircle, Clock, Copy, Check } from "lucide-react";
+import { ClientRoom, PlayerStatus } from "@/types/room";
 import { ClientProblem } from "@/data/problems";
+
+interface RunResultState {
+  type: "custom" | "examples";
+  success?: boolean;
+  stdout?: string;
+  stderr?: string;
+  time?: number;
+  isTimeout?: boolean;
+  compilationError?: boolean;
+  runtimeError?: boolean;
+  allPassed?: boolean;
+  results?: Array<{
+    exampleIndex: number;
+    input: string;
+    expectedOutput: string;
+    actualOutput: string;
+    passed: boolean;
+    time?: number;
+    stderr?: string;
+  }>;
+}
 
 export default function DuelRoomPage() {
   const router = useRouter();
@@ -20,12 +42,20 @@ export default function DuelRoomPage() {
   const [room, setRoom] = useState<ClientRoom | null>(null);
   const [problem, setProblem] = useState<ClientProblem | null>(null);
   const [myCode, setMyCode] = useState<string>("");
+  
+  // Execution states
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [runResult, setRunResult] = useState<RunResultState | null>(null);
+  const [isTerminalOpen, setIsTerminalOpen] = useState<boolean>(true);
+
+  // Submission states
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitResult, setSubmitResult] = useState<{
     testsPassed: number;
     totalTests: number;
     success: boolean;
   } | null>(null);
+
   const [copiedLink, setCopiedLink] = useState(false);
   const [timeLeftMs, setTimeLeftMs] = useState<number | null>(null);
 
@@ -36,7 +66,10 @@ export default function DuelRoomPage() {
   // 1. Get player name on load
   useEffect(() => {
     const urlName = searchParams.get("name");
-    const storedName = sessionStorage.getItem(`clashjudge_name_${roomCode}`) || sessionStorage.getItem("clashjudge_name");
+    const storedName =
+      sessionStorage.getItem(`clashjudge_name_${roomCode}`) ||
+      sessionStorage.getItem("clashjudge_name");
+
     if (urlName && urlName.trim()) {
       setPlayerName(urlName.trim());
       sessionStorage.setItem(`clashjudge_name_${roomCode}`, urlName.trim());
@@ -63,17 +96,23 @@ export default function DuelRoomPage() {
       const url = playerName
         ? `/api/duel/${roomCode}?playerName=${encodeURIComponent(playerName)}`
         : `/api/duel/${roomCode}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: "no-store" });
       if (res.ok) {
         const data: ClientRoom = await res.json();
         setRoom(data);
 
         // Fetch problem if not yet fetched
         if (data.problemId && !problem) {
-          const probRes = await fetch(`/api/problems/${data.problemId}`);
+          const probRes = await fetch(`/api/problems/${data.problemId}`, { cache: "no-store" });
           if (probRes.ok) {
-            const probData: ClientProblem = await probRes.json();
-            setProblem(probData);
+            const json = await probRes.json();
+            const p = json.problem || json;
+            setProblem({
+              id: p.problemId || p.id || data.problemId,
+              title: p.title || "Duel Problem",
+              statement: p.description || p.statement || "",
+              examples: Array.isArray(p.examples) ? p.examples : [],
+            });
           }
         }
 
@@ -81,7 +120,7 @@ export default function DuelRoomPage() {
         if (!myCodeRef.current && playerName) {
           const isP1 = data.player1?.name?.toLowerCase() === playerName.toLowerCase();
           const isP2 = data.player2?.name?.toLowerCase() === playerName.toLowerCase();
-          if (isP1 && data.player1.code) {
+          if (isP1 && data.player1?.code) {
             setMyCode(data.player1.code);
           } else if (isP2 && data.player2?.code) {
             setMyCode(data.player2.code);
@@ -111,7 +150,6 @@ export default function DuelRoomPage() {
     if ((room.status === "FINISHED" || (p1Done && p2Done) || timerExpired) && room.status !== "WAITING") {
       if (!judgingTriggeredRef.current) {
         judgingTriggeredRef.current = true;
-        // Call judge endpoint and navigate to result
         fetch(`/api/duel/${roomCode}/judge`, { method: "POST" })
           .catch((e) => console.error(e))
           .finally(() => {
@@ -144,6 +182,47 @@ export default function DuelRoomPage() {
     return () => clearInterval(timerInterval);
   }, [room?.endsAt, room?.status]);
 
+  // Run code handler (testing with real OnlineCompiler)
+  const handleRunCode = async () => {
+    if (!myCodeRef.current.trim() || isRunning) return;
+    setIsRunning(true);
+    setIsTerminalOpen(true);
+
+    try {
+      const res = await fetch("/api/problems/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          problemId: room?.problemId,
+          language: "python",
+          code: myCodeRef.current,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setRunResult(data);
+      } else {
+        const err = await res.json();
+        setRunResult({
+          type: "custom",
+          success: false,
+          stderr: err.error || "Failed to execute code",
+          runtimeError: true,
+        });
+      }
+    } catch (err: any) {
+      setRunResult({
+        type: "custom",
+        success: false,
+        stderr: err.message || "Execution service error",
+        runtimeError: true,
+      });
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   // Submit code handler
   const handleSubmit = async () => {
     if (!room || !playerName || isSubmitting) return;
@@ -157,6 +236,7 @@ export default function DuelRoomPage() {
         body: JSON.stringify({
           playerName,
           code: myCodeRef.current,
+          language: "python",
         }),
       });
 
@@ -196,7 +276,6 @@ export default function DuelRoomPage() {
   const isPlayer1 = room?.player1?.name?.toLowerCase() === playerName.toLowerCase();
   const isPlayer2 = room?.player2?.name?.toLowerCase() === playerName.toLowerCase();
   const myPlayerState = isPlayer1 ? room?.player1 : isPlayer2 ? room?.player2 : null;
-  const opponentState = isPlayer1 ? room?.player2 : isPlayer2 ? room?.player1 : null;
 
   const isSolved = myPlayerState?.status === "SOLVED";
   const isFinished = room?.status === "FINISHED";
@@ -257,7 +336,7 @@ export default function DuelRoomPage() {
             <button
               onClick={() => handleSaveName(nameInput)}
               disabled={!nameInput.trim()}
-              className="w-full bg-white hover:bg-zinc-200 disabled:opacity-50 text-black font-semibold py-2.5 rounded-lg text-sm transition"
+              className="w-full bg-white hover:bg-zinc-200 disabled:opacity-50 text-black font-semibold py-2.5 rounded-lg text-sm transition font-mono"
             >
               Enter Room
             </button>
@@ -292,7 +371,6 @@ export default function DuelRoomPage() {
           )}
         </div>
 
-
         {/* Center Countdown Timer */}
         <div className="flex items-center gap-3">
           <div
@@ -321,9 +399,10 @@ export default function DuelRoomPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={copyRoomLink}
-            className="text-xs font-mono px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded text-zinc-300 transition"
+            className="text-xs font-mono px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded text-zinc-300 transition flex items-center gap-1.5"
           >
-            {copiedLink ? "✓ Link Copied" : "Copy Room Link"}
+            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
+            {copiedLink ? "Link Copied" : "Copy Room Link"}
           </button>
         </div>
       </header>
@@ -350,9 +429,10 @@ export default function DuelRoomPage() {
             <div className="flex flex-col gap-3">
               <button
                 onClick={copyRoomLink}
-                className="w-full bg-white hover:bg-zinc-200 text-black font-semibold py-2.5 rounded-lg text-sm transition"
+                className="w-full bg-white hover:bg-zinc-200 text-black font-semibold py-2.5 rounded-lg text-sm transition font-mono flex items-center justify-center gap-2"
               >
-                {copiedLink ? "✓ Copied to Clipboard" : "Copy Invite Link"}
+                {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copiedLink ? "Copied to Clipboard" : "Copy Invite Link"}
               </button>
             </div>
           </div>
@@ -378,7 +458,7 @@ export default function DuelRoomPage() {
                     Examples
                   </h3>
                   <div className="space-y-3">
-                    {problem.examples.map((ex, idx) => (
+                    {problem.examples?.map((ex, idx) => (
                       <div
                         key={idx}
                         className="bg-zinc-900/90 border border-zinc-800/80 rounded-lg p-3 text-xs font-mono"
@@ -408,8 +488,8 @@ export default function DuelRoomPage() {
             )}
           </div>
 
-          {/* Right: Split Monaco Editors & Submission Controls */}
-          <div className="col-span-8 flex flex-col bg-[#0a0a0b]">
+          {/* Right: Split Editors & Terminal Drawer */}
+          <div className="col-span-8 flex flex-col bg-[#0a0a0b] overflow-hidden">
             {/* Split Editors Container */}
             <div className="flex-1 grid grid-cols-2 gap-px bg-zinc-800 min-h-0">
               {/* Player 1 Editor (Cyan Theme) */}
@@ -547,6 +627,76 @@ export default function DuelRoomPage() {
               </div>
             </div>
 
+            {/* Terminal / Run Results Drawer */}
+            {isTerminalOpen && runResult && (
+              <div className="h-44 border-t border-zinc-800 bg-[#121214] flex flex-col text-xs font-mono">
+                <div className="h-8 px-4 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between text-zinc-400">
+                  <div className="flex items-center gap-2">
+                    <Terminal className="w-3.5 h-3.5 text-cyan-400" />
+                    <span className="font-bold text-zinc-300">Run Output</span>
+                    {runResult.compilationError && (
+                      <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                        Compilation Error
+                      </span>
+                    )}
+                    {runResult.runtimeError && (
+                      <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                        Runtime Error
+                      </span>
+                    )}
+                    {runResult.isTimeout && (
+                      <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                        Time Limit Exceeded
+                      </span>
+                    )}
+                    {runResult.allPassed && (
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        All Examples Passed
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setRunResult(null)}
+                    className="text-zinc-500 hover:text-zinc-300"
+                  >
+                    ✕ Close
+                  </button>
+                </div>
+                <div className="flex-1 p-3 overflow-y-auto space-y-2">
+                  {runResult.results ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      {runResult.results.map((r, i) => (
+                        <div
+                          key={i}
+                          className={`p-2 rounded border ${
+                            r.passed
+                              ? "bg-emerald-950/20 border-emerald-800/40 text-emerald-300"
+                              : "bg-rose-950/20 border-rose-800/40 text-rose-300"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span>Example #{r.exampleIndex}</span>
+                            <span>{r.passed ? "PASS" : "FAIL"}</span>
+                          </div>
+                          <div className="text-[11px] text-zinc-400">Input: {r.input}</div>
+                          <div className="text-[11px] text-zinc-400">Actual: {r.actualOutput || r.stderr}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div>
+                      {runResult.stdout && (
+                        <pre className="text-zinc-200 whitespace-pre-wrap">{runResult.stdout}</pre>
+                      )}
+                      {runResult.stderr && (
+                        <pre className="text-rose-400 whitespace-pre-wrap">{runResult.stderr}</pre>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Bottom Controls Bar */}
             <div className="h-16 border-t border-zinc-800 bg-[#121214] px-6 flex items-center justify-between">
               {/* Test Results Display */}
@@ -570,17 +720,26 @@ export default function DuelRoomPage() {
                   <div className="text-xs font-mono text-zinc-400">
                     {myPlayerState.testsPassed > 0
                       ? `${myPlayerState.testsPassed}/${myPlayerState.totalTests} hidden tests passed`
-                      : "Ready to submit"}
+                      : "Ready to test or submit"}
                   </div>
                 ) : null}
               </div>
 
-              {/* Submit Button */}
-              <div>
+              {/* Action Buttons: Run Code & Submit Solution */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleRunCode}
+                  disabled={isRunning || isSubmitting || isEditorReadOnly || room.status !== "ACTIVE"}
+                  className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-200 font-semibold rounded-lg text-xs transition font-mono flex items-center gap-2"
+                >
+                  <Play className={`w-3.5 h-3.5 ${isRunning ? "animate-spin" : "text-emerald-400"}`} />
+                  {isRunning ? "Running..." : "Run Code"}
+                </button>
+
                 <button
                   onClick={handleSubmit}
-                  disabled={isSubmitting || isEditorReadOnly || room.status !== "ACTIVE"}
-                  className="px-6 py-2.5 bg-white hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed text-black font-semibold rounded-lg text-sm transition font-mono flex items-center gap-2"
+                  disabled={isSubmitting || isRunning || isEditorReadOnly || room.status !== "ACTIVE"}
+                  className="px-6 py-2 bg-white hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed text-black font-semibold rounded-lg text-xs transition font-mono flex items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.15)]"
                 >
                   {isSubmitting ? (
                     <>
@@ -592,7 +751,10 @@ export default function DuelRoomPage() {
                   ) : isFinished ? (
                     "Duel Finished"
                   ) : (
-                    "Submit Solution"
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      Submit Solution
+                    </>
                   )}
                 </button>
               </div>
