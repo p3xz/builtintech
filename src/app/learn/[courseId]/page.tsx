@@ -22,6 +22,7 @@ import { getCourseById } from "@/data/courses";
 import { fetchUserProgress, getDecoratedCourse } from "@/services/courseService";
 import { ICourse, ICourseModule, ILesson } from "@/types/learning";
 import { LoadingState, ErrorState } from "@/components/StatusState";
+import { CourseOverviewSkeleton } from "@/components/Skeletons";
 
 export default function CourseOverviewPage() {
   const params = useParams();
@@ -50,7 +51,7 @@ export default function CourseOverviewPage() {
     loadCourse();
   }, [courseId]);
 
-  if (loading) return <LoadingState message="Loading course roadmap..." />;
+  if (loading) return <CourseOverviewSkeleton />;
   if (error || !course) return <ErrorState title="Course Not Found" message="We couldn't find this course curriculum." />;
 
   // Find next actionable lesson or module

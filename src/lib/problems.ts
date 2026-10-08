@@ -1,4 +1,4 @@
-import { connectToDatabase } from "./mongodb";
+import { connectToDatabase, getInsidCodeDb, getBuiltInTechDb } from "./mongodb";
 import { Question } from "@/models/Question";
 import { IQuestion, DifficultyLevel } from "@/types";
 
@@ -27,12 +27,48 @@ export interface PublicProblemData {
 }
 
 export async function getPublicProblem(idOrSlug: string): Promise<PublicProblemData | null> {
+  const cleanId = idOrSlug.trim();
+  const cleanSlug = cleanId.toLowerCase();
+
+  // 1. Try fetching from insidcode.questions first (MongoDB Atlas 330 questions)
+  try {
+    const insidcodeDb = await getInsidCodeDb();
+    const rawQuestion = await insidcodeDb.collection("questions").findOne({
+      $or: [
+        { problemId: cleanId },
+        { problemId: Number(cleanId) ? Number(cleanId) : cleanId },
+        { slug: cleanSlug },
+        { id: cleanId },
+      ],
+      $and: [{ isPublished: { $ne: false } }],
+    });
+
+    if (rawQuestion) {
+      return {
+        _id: rawQuestion._id.toString(),
+        problemId: String(rawQuestion.problemId || rawQuestion.id || cleanId),
+        title: rawQuestion.title || "Untitled Problem",
+        slug: rawQuestion.slug || cleanSlug,
+        difficulty: (rawQuestion.difficulty as DifficultyLevel) || "Easy",
+        description: rawQuestion.description || "",
+        constraints: Array.isArray(rawQuestion.constraints) ? rawQuestion.constraints : [],
+        examples: Array.isArray(rawQuestion.examples) ? rawQuestion.examples : [],
+        tags: Array.isArray(rawQuestion.tags) ? rawQuestion.tags : [],
+        xp: typeof rawQuestion.xp === "number" ? rawQuestion.xp : 100,
+        starterTemplates: rawQuestion.starterTemplates || {},
+      };
+    }
+  } catch (insidcodeErr) {
+    console.warn("[getPublicProblem] insidcode lookup warning:", insidcodeErr);
+  }
+
+  // 2. Fallback to builtintech.questions via Mongoose
   try {
     await connectToDatabase();
     const question = await Question.findOne({
       $or: [
-        { problemId: idOrSlug },
-        { slug: idOrSlug.toLowerCase() },
+        { problemId: cleanId },
+        { slug: cleanSlug },
       ],
       isPublished: true,
     })
@@ -50,6 +86,61 @@ export async function getAllPublishedProblems(filter?: {
   difficulty?: string;
   search?: string;
 }): Promise<PublicProblemData[]> {
+  // 1. Try fetching from insidcode.questions first
+  try {
+    const insidcodeDb = await getInsidCodeDb();
+    const query: Record<string, unknown> = {
+      isPublished: { $ne: false },
+    };
+
+    if (filter?.difficulty && filter.difficulty !== "All") {
+      query.difficulty = filter.difficulty;
+    }
+
+    if (filter?.search && filter.search.trim() !== "") {
+      const regex = new RegExp(filter.search.trim(), "i");
+      query.$or = [{ title: regex }, { tags: regex }, { problemId: regex }];
+    }
+
+    const insidcodeQuestions = await insidcodeDb
+      .collection("questions")
+      .find(query)
+      .project({
+        problemId: 1,
+        id: 1,
+        title: 1,
+        slug: 1,
+        difficulty: 1,
+        description: 1,
+        constraints: 1,
+        examples: 1,
+        tags: 1,
+        xp: 1,
+        starterTemplates: 1,
+      })
+      .sort({ problemId: 1, id: 1 })
+      .toArray();
+
+    if (insidcodeQuestions.length > 0) {
+      return insidcodeQuestions.map((q) => ({
+        _id: q._id.toString(),
+        problemId: String(q.problemId || q.id || q._id),
+        title: q.title || "Untitled Problem",
+        slug: q.slug || String(q.problemId || q.id),
+        difficulty: (q.difficulty as DifficultyLevel) || "Easy",
+        description: q.description || "",
+        constraints: Array.isArray(q.constraints) ? q.constraints : [],
+        examples: Array.isArray(q.examples) ? q.examples : [],
+        tags: Array.isArray(q.tags) ? q.tags : [],
+        xp: typeof q.xp === "number" ? q.xp : 100,
+        starterTemplates: q.starterTemplates || {},
+      }));
+    }
+  } catch (insidcodeErr) {
+    console.warn("[getAllPublishedProblems] insidcode list warning:", insidcodeErr);
+  }
+
+  // 2. Fallback to builtintech.questions via Mongoose
   try {
     await connectToDatabase();
     const query: Record<string, unknown> = { isPublished: true };
@@ -72,5 +163,63 @@ export async function getAllPublishedProblems(filter?: {
   } catch (err) {
     console.error("[getAllPublishedProblems] Error:", err);
     return [];
+  }
+}
+
+/**
+ * Server-only helper to fetch complete problem with hidden test cases for judge/submission execution
+ */
+export async function getProblemForJudging(idOrSlug: string): Promise<IQuestion | null> {
+  const cleanId = idOrSlug.trim();
+  const cleanSlug = cleanId.toLowerCase();
+
+  // 1. Try insidcode.questions
+  try {
+    const insidcodeDb = await getInsidCodeDb();
+    const rawQuestion = await insidcodeDb.collection("questions").findOne({
+      $or: [
+        { problemId: cleanId },
+        { problemId: Number(cleanId) ? Number(cleanId) : cleanId },
+        { slug: cleanSlug },
+        { id: cleanId },
+      ],
+      $and: [{ isPublished: { $ne: false } }],
+    });
+
+    if (rawQuestion) {
+      return {
+        _id: rawQuestion._id.toString(),
+        problemId: String(rawQuestion.problemId || rawQuestion.id || cleanId),
+        title: rawQuestion.title || "Untitled Problem",
+        slug: rawQuestion.slug || cleanSlug,
+        difficulty: (rawQuestion.difficulty as DifficultyLevel) || "Easy",
+        description: rawQuestion.description || "",
+        constraints: Array.isArray(rawQuestion.constraints) ? rawQuestion.constraints : [],
+        examples: Array.isArray(rawQuestion.examples) ? rawQuestion.examples : [],
+        starterTemplates: rawQuestion.starterTemplates || {},
+        tags: Array.isArray(rawQuestion.tags) ? rawQuestion.tags : [],
+        xp: typeof rawQuestion.xp === "number" ? rawQuestion.xp : 100,
+        hiddenTestCases: Array.isArray(rawQuestion.hiddenTestCases) ? rawQuestion.hiddenTestCases : [],
+        referenceSolution: rawQuestion.referenceSolution,
+        isPublished: rawQuestion.isPublished !== false,
+        createdAt: rawQuestion.createdAt ? new Date(rawQuestion.createdAt) : new Date(),
+        updatedAt: rawQuestion.updatedAt ? new Date(rawQuestion.updatedAt) : new Date(),
+      };
+    }
+  } catch (err) {
+    console.warn("[getProblemForJudging] insidcode lookup warning:", err);
+  }
+
+  // 2. Fallback to builtintech
+  try {
+    await connectToDatabase();
+    const q = await Question.findOne({
+      $or: [{ problemId: cleanId }, { slug: cleanSlug }],
+      isPublished: true,
+    }).lean<IQuestion>();
+    return q || null;
+  } catch (err) {
+    console.error("[getProblemForJudging] Error:", err);
+    return null;
   }
 }

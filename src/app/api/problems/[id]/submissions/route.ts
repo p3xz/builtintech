@@ -14,7 +14,7 @@ export async function GET(
     }
 
     const authResult = await getAuthenticatedUser();
-    if (!authResult.user) {
+    if (!authResult || !authResult.user) {
       return NextResponse.json({ submissions: [] });
     }
 

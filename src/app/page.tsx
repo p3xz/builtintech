@@ -34,6 +34,7 @@ import { calculateLevelFromXp } from "@/services/progressService";
 import { getDecoratedCourse } from "@/services/courseService";
 import { getCourseById } from "@/data/courses";
 import { ICourse } from "@/types/learning";
+import { DashboardSkeleton } from "@/components/Skeletons";
 
 // ──────────────────────────────────────────
 // TYPES
@@ -337,11 +338,8 @@ function AuthenticatedDashboard({ userId }: { userId: string }) {
       <main className="relative min-h-screen bg-[#0a0a0b] text-[#f4f4f5] flex flex-col selection:bg-cyan-500/30 overflow-x-hidden">
         <ConstellationField />
         <GlowHorizonFM variant="top" className="opacity-40 pointer-events-none" />
-        <div className="relative z-10 flex items-center justify-center min-h-[60vh]">
-          <div className="text-center space-y-4">
-            <div className="w-12 h-12 border-2 border-cyan-500/40 border-t-cyan-400 rounded-full animate-spin mx-auto" />
-            <p className="text-sm text-zinc-400 font-mono">Loading your dashboard…</p>
-          </div>
+        <div className="relative z-10 py-8 px-4 sm:px-6">
+          <DashboardSkeleton />
         </div>
       </main>
     );

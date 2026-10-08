@@ -9,13 +9,11 @@ import { getAuthenticatedUser } from "@/lib/auth";
 export async function GET(request: NextRequest) {
   try {
     const authResult = await getAuthenticatedUser();
-    if (!authResult.user || authResult.user.role !== "admin") {
-      // In development, if no admin exists, we can still allow or return 403
-      // Check if user is admin
-      if (!authResult.user) {
+    if (!authResult || !authResult.user || authResult.role !== "admin") {
+      if (!authResult || !authResult.user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
-      if (authResult.user.role !== "admin") {
+      if (authResult.role !== "admin") {
         return NextResponse.json({ error: "Forbidden. Admin privileges required." }, { status: 403 });
       }
     }

@@ -91,10 +91,10 @@ export interface IQuizQuestion {
 export interface IModuleQuiz {
   id: string;
   quizId: string;
-  moduleId: string;
-  courseId: string;
+  moduleId?: string;
+  courseId?: string;
   title: string;
-  description: string;
+  description?: string;
   passingScorePercent: number; // e.g. 70
   xpReward: number;
   questions: IQuizQuestion[];
@@ -109,7 +109,7 @@ export interface ICourseModule {
   order: number;
   estimatedMinutes: number;
   lessons: ILesson[];
-  practiceActivities: IPracticeActivity[];
+  practiceActivities?: IPracticeActivity[];
   quiz: IModuleQuiz;
   isCompleted?: boolean;
   isLocked?: boolean;

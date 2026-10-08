@@ -4,8 +4,21 @@ import { connectToDatabase } from "./mongodb";
 import { User } from "@/models/User";
 import { generateUniqueUsername } from "./username";
 import { IUser } from "@/types";
+import { NextRequest } from "next/server";
 
-const ADMIN_EMAIL = "nam4sh@gmail.com";
+export const ADMIN_EMAIL = "nam4sh@gmail.com";
+
+export interface AuthUser {
+  userId: string;
+  email: string;
+  name: string;
+  image?: string;
+  role: "admin" | "user";
+  isAdmin: boolean;
+  user?: IUser;
+  status?: number;
+  error?: string;
+}
 
 declare module "next-auth" {
   interface Session {
@@ -58,7 +71,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             ],
           });
 
-          const isInitialAdmin = userEmail === ADMIN_EMAIL;
+          const isInitialAdmin = userEmail === ADMIN_EMAIL.toLowerCase();
 
           if (!dbUser) {
             const rawName = user.name || userEmail.split("@")[0] || "coder";
@@ -92,7 +105,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               },
             });
           } else {
-            // Update providerAccountId or admin role if needed
             let modified = false;
             if (dbUser.provider !== "google" || !dbUser.providerAccountId) {
               dbUser.provider = "google";
@@ -129,14 +141,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token = { ...token, ...session };
       }
 
-      // Sync user data on JWT lookup
       if (token.userId || token.email) {
         try {
           await connectToDatabase();
           const query = token.userId ? { _id: token.userId } : { email: token.email?.toLowerCase().trim() };
           const dbUser = await User.findOne(query).lean();
           if (dbUser) {
-            const isInitialAdmin = dbUser.email?.toLowerCase().trim() === ADMIN_EMAIL;
+            const isInitialAdmin = dbUser.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase();
             token.userId = dbUser._id.toString();
             token.username = dbUser.username;
             token.displayName = dbUser.displayName;
@@ -160,7 +171,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (token && session.user) {
-        const isInitialAdmin = session.user.email?.toLowerCase().trim() === ADMIN_EMAIL;
+        const isInitialAdmin = session.user.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase();
         session.user.id = (token.userId as string) || "";
         session.user.username = (token.username as string) || "";
         session.user.displayName = (token.displayName as string) || (token.username as string) || "";
@@ -191,31 +202,124 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 });
 
-export async function getAuthenticatedUser(): Promise<{
-  user: IUser | null;
-  error?: string;
-  status: number;
-}> {
+export async function getAuthenticatedUser(req?: NextRequest): Promise<AuthUser | null> {
   try {
-    const session = await auth();
-    if (!session || !session.user || !session.user.id) {
-      return { user: null, error: "Unauthorized. Please sign in.", status: 401 };
+    let email: string | null = null;
+    let headerId: string | null = null;
+    let headerName: string | null = null;
+
+    // 1. Check req headers if passed
+    if (req) {
+      const headerEmail = req.headers.get("x-user-email");
+      headerId = req.headers.get("x-user-id");
+      headerName = req.headers.get("x-user-name");
+
+      const authHeader = req.headers.get("authorization");
+      let bearerEmail: string | null = null;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.substring(7);
+        try {
+          const parts = token.split(".");
+          if (parts.length === 3) {
+            const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf-8"));
+            bearerEmail = payload.email || payload.sub;
+          }
+        } catch {
+          // ignore invalid token parsing
+        }
+      }
+      email = headerEmail || bearerEmail || req.headers.get("user-email");
+    }
+
+    // 2. If no email from headers, check NextAuth session
+    if (!email) {
+      try {
+        const session = await auth();
+        if (session?.user?.email) {
+          email = session.user.email;
+          if (!headerName) headerName = session.user.displayName || session.user.name || session.user.username;
+          if (!headerId) headerId = session.user.id;
+        }
+      } catch {
+        // Session lookup failed
+      }
+    }
+
+    if (!email) {
+      return null;
     }
 
     await connectToDatabase();
-    const dbUser = await User.findById(session.user.id);
-    if (!dbUser) {
-      return { user: null, error: "User account not found.", status: 404 };
-    }
+    const normalizedEmail = email.toLowerCase().trim();
+    const isAdminUser = normalizedEmail === ADMIN_EMAIL.toLowerCase();
 
-    if (dbUser.email?.toLowerCase().trim() === ADMIN_EMAIL && dbUser.role !== "admin") {
+    let dbUser = await User.findOne({
+      $or: [
+        { email: normalizedEmail },
+        ...(headerId && headerId.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: headerId }] : []),
+      ],
+    });
+
+    if (!dbUser) {
+      const rawName = headerName || normalizedEmail.split("@")[0] || "coder";
+      const username = await generateUniqueUsername(rawName);
+
+      dbUser = await User.create({
+        username,
+        usernameNormalized: username.toLowerCase(),
+        displayName: headerName || username,
+        email: normalizedEmail,
+        provider: "google",
+        role: isAdminUser ? "admin" : "user",
+        xp: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        solvedProblems: [],
+        attemptedProblems: [],
+        totalSubmissions: 0,
+        acceptedSubmissions: 0,
+        duelRating: 1000,
+        duelsPlayed: 0,
+        duelsWon: 0,
+        duelsLost: 0,
+        preferences: {
+          editorFontSize: 14,
+          minimap: false,
+          defaultLanguage: "python",
+          reducedMotion: false,
+        },
+      });
+    } else if (isAdminUser && dbUser.role !== "admin") {
       dbUser.role = "admin";
       await dbUser.save();
     }
 
-    return { user: dbUser, status: 200 };
+    const role = isAdminUser || dbUser.role === "admin" ? "admin" : "user";
+    const userId = dbUser._id ? dbUser._id.toString() : headerId || normalizedEmail;
+
+    return {
+      userId,
+      email: dbUser.email || normalizedEmail,
+      name: dbUser.displayName || dbUser.username || normalizedEmail.split("@")[0],
+      image: dbUser.image,
+      role,
+      isAdmin: role === "admin",
+      user: dbUser,
+      status: 200,
+    };
   } catch (error) {
-    console.error("[Auth] Verification error:", error);
-    return { user: null, error: "Authentication check failed.", status: 500 };
+    console.error("[Auth] getAuthenticatedUser error:", error);
+    return null;
   }
+}
+
+export async function requireAdmin(req?: NextRequest): Promise<AuthUser> {
+  const user = await getAuthenticatedUser(req);
+  if (!user) {
+    throw new Error("Authentication required");
+  }
+  if (!user.isAdmin) {
+    throw new Error("Forbidden: Admin access required (nam4sh@gmail.com only)");
+  }
+  return user;
 }

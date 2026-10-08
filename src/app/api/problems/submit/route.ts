@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Authenticate user
     const authResult = await getAuthenticatedUser();
-    if (!authResult.user) {
+    if (!authResult || !authResult.user) {
       return NextResponse.json(
         { error: "Authentication required to submit solutions. Please sign in with Google." },
         { status: 401 }

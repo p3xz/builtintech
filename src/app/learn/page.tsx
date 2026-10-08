@@ -7,6 +7,7 @@ import { getAllCourses } from "@/data/courses";
 import { fetchUserProgress, getDecoratedCourse } from "@/services/courseService";
 import { ICourse, SupportedLanguage, CourseLevel } from "@/types/learning";
 import { LoadingState } from "@/components/StatusState";
+import { CourseGridSkeleton } from "@/components/Skeletons";
 
 export default function CoursesDirectoryPage() {
   const [courses, setCourses] = useState<ICourse[]>([]);
@@ -114,7 +115,7 @@ export default function CoursesDirectoryPage() {
 
       {/* Courses Grid */}
       {loading ? (
-        <LoadingState message="Loading courses..." />
+        <CourseGridSkeleton count={4} />
       ) : filteredCourses.length === 0 ? (
         <div className="bg-[#121214] border border-zinc-800 rounded-2xl p-12 text-center max-w-md mx-auto">
           <BookOpen className="w-10 h-10 text-zinc-600 mx-auto mb-3" />

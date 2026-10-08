@@ -1,7 +1,7 @@
-import { ICourse, SupportedLanguage, CourseLevel } from "@/types/learning";
+import { ICourse, ICourseModule, ILesson, IModuleQuiz, SupportedLanguage, CourseLevel } from "@/types/learning";
 
 export const COURSES: ICourse[] = [
-  // ── 1. PYTHON FUNDAMENTALS ──
+  // ── 1. PYTHON FUNDAMENTALS (8 Modules) ──
   {
     id: "python-fundamentals",
     courseId: "python-fundamentals",
@@ -9,1159 +9,511 @@ export const COURSES: ICourse[] = [
     slug: "python-fundamentals",
     language: "python",
     level: "Beginner",
-    tagline: "Master Python from core syntax to algorithmic thinking and data structures.",
+    tagline: "Master Python from core syntax to algorithmic thinking, data structures, OOP, and type safety.",
     description: "An intuitive, hands-on path to writing clean, idiomatic Python. Learn variables, data types, logic flow, loops, collections, and problem-solving through interactive code sandboxes.",
     icon: "🐍",
     bannerGradient: "from-emerald-500/20 via-cyan-500/10 to-transparent",
-    estimatedHours: 6,
-    totalXp: 850,
+    estimatedHours: 10,
+    totalXp: 1200,
     whatYouWillLearn: [
       "Python 3 syntax, dynamic typing, and variables",
       "Conditional branching with if, elif, and else",
       "Iteration with for loops, while loops, and list comprehensions",
-      "Reusable functions, scope, and clean code principles",
+      "Reusable functions, scope, decorators, and generators",
       "Essential data structures: Lists, Dictionaries, Sets, and Tuples",
+      "Modules, package organization, and safe file I/O",
+      "Object-oriented classes, instances, and dunder methods",
+      "Type hinting with the typing module and testing with pytest",
     ],
     modules: [
       {
         id: "py-mod-1",
-        moduleId: "python-basics",
+        moduleId: "environment-setup-python-basics",
         courseId: "python-fundamentals",
-        title: "Python Basics & Core Types",
-        description: "Understand variables, strings, integers, floats, user input, and clean formatting.",
+        title: "Environment Setup & Python Basics",
+        description: "Understand variables, strings, integers, floats, user input, indentation, and standard I/O.",
         order: 1,
         estimatedMinutes: 45,
         lessons: [
           {
-            id: "py-les-1",
+            id: "py-les-1-1",
             lessonId: "what-is-python",
-            moduleId: "python-basics",
+            moduleId: "environment-setup-python-basics",
             courseId: "python-fundamentals",
             title: "What is Python?",
-            summary: "Understand Python's philosophy, indentation-based syntax, and how the interpreter executes statements.",
+            summary: "Understand Python's philosophy, indentation-based syntax, and interpreter execution.",
             order: 1,
             estimatedMinutes: 10,
-            concept: `### The Python Mindset
-
-Python is a readable, high-level programming language designed for developer productivity and clean code. Unlike languages that rely on curly braces \`{}\` or semicolons \`;\`, Python uses **indentation** to define blocks of code.
-
-Key attributes:
-* **Interpreted**: Code executes line by line from top to bottom.
-* **Dynamically Typed**: You do not declare variable types beforehand.
-* **Readable**: Code reads close to natural English.`,
+            concept: `### The Python Mindset\n\nPython is a readable, high-level programming language designed for developer productivity. Unlike languages that rely on curly braces \`{}\` or semicolons \`;\`, Python uses **indentation** to define blocks of code.\n\nKey attributes:\n* **Interpreted**: Code executes line by line from top to bottom.\n* **Dynamically Typed**: You do not declare variable types beforehand.\n* **Readable**: Code reads close to natural English.`,
             conceptPoints: [
               "Indentation (usually 4 spaces) defines code blocks.",
               "Comments begin with the '#' symbol.",
-              "print() outputs information to the terminal.",
+              "print() outputs information to standard output.",
             ],
             example: {
               title: "Hello World and Printing",
               language: "python",
-              code: `# Print a greeting to the console
-print("Welcome to Built In Tech!")
-
-# Comments are ignored by Python
-print(42 + 8)`,
+              code: `# Print a greeting to the console\nprint("Welcome to Built In Tech!")\nprint(42 + 8)`,
               output: "Welcome to Built In Tech!\n50",
-              explanation: "The print() function takes values and outputs their text representation.",
+              explanation: "The print() function outputs strings and evaluated expressions.",
             },
             tryIt: {
-              instructions: "Write a print statement that outputs the text 'I am learning Python!' to the console.",
+              instructions: "Write a print statement that outputs 'I am learning Python!' to the console.",
               type: "code",
-              starterCode: `# Write your print statement below:
-`,
+              starterCode: `# Write your print statement below:\n`,
               solutionCode: `print("I am learning Python!")`,
               expectedOutput: "I am learning Python!",
               hint: "Use print('...') with double or single quotes.",
             },
           },
           {
-            id: "py-les-2",
-            lessonId: "variables-and-data-types",
-            moduleId: "python-basics",
+            id: "py-les-1-2",
+            lessonId: "variables-and-dynamic-typing",
+            moduleId: "environment-setup-python-basics",
             courseId: "python-fundamentals",
-            title: "Variables & Data Types",
-            summary: "Learn how to store text, numbers, and booleans in descriptive variables.",
+            title: "Variables & Dynamic Typing",
+            summary: "Declare and use variables without type boilerplate.",
             order: 2,
             estimatedMinutes: 12,
-            concept: `### Storing Data in Variables
-
-In Python, a variable is created the moment you assign a value to it using the assignment operator \`=\`.
-
-Primary Primitive Types:
-* **Integer (\`int\`)**: Whole numbers like \`10\`, \`-5\`, \`0\`.
-* **Float (\`float\`)**: Decimal numbers like \`3.14\`, \`-0.5\`.
-* **String (\`str\`)**: Text enclosed in quotes like \`"Built In Tech"\`.
-* **Boolean (\`bool\`)**: \`True\` or \`False\`.`,
-            conceptPoints: [
-              "Variable names cannot start with numbers and use snake_case by convention.",
-              "Use type() to inspect a variable's data type.",
-              "Python handles type assignment dynamically.",
-            ],
+            concept: `### Dynamic Typing\n\nVariables in Python are created upon assignment using \`=\`. Python infers the type automatically at runtime.`,
+            conceptPoints: ["Variable names use snake_case.", "Variables point to objects in heap memory."],
             example: {
-              title: "Creating Variables",
+              title: "Declaring Variables",
               language: "python",
-              code: `user_name = "Alex"
-user_level = 5
-xp_points = 2450.5
-is_active = True
-
-print(f"{user_name} is level {user_level} with {xp_points} XP!")`,
-              output: "Alex is level 5 with 2450.5 XP!",
-              explanation: "An f-string (f'...') allows you to embed variable values directly inside curly braces {}.",
+              code: `name = "Ada Lovelace"\nyear = 1843\nprint(f"{name} wrote the first algorithm in {year}")`,
+              output: "Ada Lovelace wrote the first algorithm in 1843",
+              explanation: "f-strings format expressions inside curly braces.",
             },
             tryIt: {
-              instructions: "Create a variable named `language` with value `'Python'` and a variable `score` with value `100`. Print both using an f-string: `Learning Python with 100 points`.",
+              instructions: "Assign the integer 100 to variable `xp` and print it.",
               type: "code",
-              starterCode: `# Create your variables here:
-language = ""
-score = 0
-
-# Print your message:
-`,
-              solutionCode: `language = "Python"
-score = 100
-print(f"Learning {language} with {score} points")`,
-              expectedOutput: "Learning Python with 100 points",
-              hint: "Assign language = 'Python' and score = 100, then print(f'Learning {language} with {score} points').",
+              starterCode: `# Create variable xp and print it\n`,
+              solutionCode: `xp = 100\nprint(xp)`,
+              expectedOutput: "100",
             },
-          },
-          {
-            id: "py-les-3",
-            lessonId: "string-operations",
-            moduleId: "python-basics",
-            courseId: "python-fundamentals",
-            title: "String Operations & Formatting",
-            summary: "Transform, slice, join, and format strings with built-in methods.",
-            order: 3,
-            estimatedMinutes: 12,
-            concept: `### Working with Strings
-
-Strings are ordered sequences of characters. Python offers powerful built-in methods to manipulate text without mutating the original string.
-
-Common String Operations:
-* \`.upper()\` / \`.lower()\` - Change case
-* \`.strip()\` - Remove leading/trailing whitespace
-* \`.replace(old, new)\` - Substitute text
-* \`len(text)\` - Get number of characters`,
-            conceptPoints: [
-              "Strings are immutable in Python.",
-              "Indexing starts at 0 (e.g., text[0] is the first character).",
-              "f-strings are the standard for modern Python string interpolation.",
-            ],
-            example: {
-              title: "String Transformations",
-              language: "python",
-              code: `raw_input = "  python developer  "
-clean_text = raw_input.strip().title()
-
-print("Original:", raw_input)
-print("Cleaned:", clean_text)
-print("Length:", len(clean_text))`,
-              output: "Original:   python developer  \nCleaned: Python Developer\nLength: 16",
-              explanation: "strip() removes surrounding spaces, and title() capitalizes the first letter of each word.",
-            },
-            tryIt: {
-              instructions: "Given the string `msg = 'hello world'`, print it in uppercase and replace `'WORLD'` with `'BUILTIN'`.",
-              type: "code",
-              starterCode: `msg = "hello world"
-# Transform and print here:
-`,
-              solutionCode: `msg = "hello world"
-print(msg.upper().replace("WORLD", "BUILTIN"))`,
-              expectedOutput: "HELLO BUILTIN",
-              hint: "Chain msg.upper().replace('WORLD', 'BUILTIN') inside print().",
-            },
-          },
-        ],
-        practiceActivities: [
-          {
-            id: "py-p-1",
-            moduleId: "python-basics",
-            courseId: "python-fundamentals",
-            title: "Fix the Syntax Bug",
-            type: "debugging",
-            prompt: "Spot and fix the syntax error in the greeting script.",
-            instructions: "The code below fails with a SyntaxError because of incorrect string formatting or missing quotes. Fix it so it prints 'Built In Tech'!",
-            starterCode: `brand = Built In Tech
-print("Welcome to " + brand)`,
-            solutionCode: `brand = "Built In Tech"
-print("Welcome to " + brand)`,
-            explanation: "Strings must be enclosed in quotes like \"Built In Tech\". Without quotes, Python treats words as variable names.",
-            xp: 30,
-          },
-          {
-            id: "py-p-2",
-            moduleId: "python-basics",
-            courseId: "python-fundamentals",
-            title: "Predict the Output",
-            type: "output-prediction",
-            prompt: "What will this Python code output when executed?",
-            instructions: "Analyze the variable assignments and arithmetic operations.",
-            starterCode: `x = 15
-y = 4
-result = (x // y) * 2
-print(result)`,
-            options: ["6", "7.5", "8", "7"],
-            correctAnswer: "6",
-            explanation: "// is integer division (floor division), so 15 // 4 equals 3. Then 3 * 2 equals 6.",
-            xp: 25,
-          },
-          {
-            id: "py-p-3",
-            moduleId: "python-basics",
-            courseId: "python-fundamentals",
-            title: "Variable Type Matcher",
-            type: "multiple-choice",
-            prompt: "Which Python data type represents decimal numbers like 3.14159?",
-            instructions: "Choose the correct built-in type.",
-            options: ["int", "float", "decimal", "double"],
-            correctAnswer: 1, // index of float
-            explanation: "In standard Python, decimal/floating-point values belong to the 'float' type.",
-            xp: 20,
           },
         ],
         quiz: {
           id: "py-quiz-1",
-          quizId: "python-basics-quiz",
-          moduleId: "python-basics",
-          courseId: "python-fundamentals",
-          title: "Python Basics Checkpoint Quiz",
-          description: "Demonstrate your understanding of Python syntax, variables, types, and formatting to unlock Module 2.",
-          passingScorePercent: 70,
+          quizId: "quiz_environment-setup-python-basics",
+          title: "Environment & Basics Checkpoint Quiz",
+          description: "Pass to complete the module and unlock Data Types & Operators.",
+          passingScorePercent: 66,
           xpReward: 100,
           questions: [
             {
-              id: "q1",
-              question: "How does Python define a block of code (such as inside a loop or function)?",
-              options: [
-                "Using curly braces { }",
-                "Using indentation (whitespace)",
-                "Using begin ... end keywords",
-                "Using semicolons ;",
-              ],
-              correctIndex: 1,
-              explanation: "Python strictly enforces whitespace indentation to delineate code blocks.",
-              conceptHint: "Look at how lines are aligned under headers in Python.",
-            },
-            {
-              id: "q2",
-              question: "What is the result of evaluating: type(True)?",
-              options: ["<class 'string'>", "<class 'bool'>", "<class 'int'>", "<class 'boolean'>"],
-              correctIndex: 1,
-              explanation: "Booleans in Python are instances of the 'bool' class.",
-              conceptHint: "True and False are boolean literals.",
-            },
-            {
-              id: "q3",
-              question: "Which of the following is a valid variable name according to Python conventions?",
-              options: ["2nd_player", "player-name", "player_score", "class"],
-              correctIndex: 2,
-              explanation: "Python variable names use snake_case (letters, numbers, underscores) and cannot start with a digit or use reserved keywords like 'class'.",
-              conceptHint: "Identifiers use letters and underscores.",
-            },
-            {
-              id: "q4",
-              question: "What does the expression '10' + '20' evaluate to in Python?",
-              options: ["30", "'1020'", "TypeError", "200"],
-              correctIndex: 1,
-              explanation: "When + is used between two strings, Python concatenates them together into '1020'.",
-              conceptHint: "Quotes denote strings, not numbers.",
-            },
-            {
-              id: "q5",
-              question: "Which string formatting syntax is recommended for Python 3.6+?",
-              options: [
-                "f'Hello {name}' (f-strings)",
-                "'Hello %s' % name",
-                "'Hello {}'.format(name)",
-                "concat('Hello ', name)",
-              ],
+              id: "py-q1-1",
+              question: "How does Python define code blocks instead of using curly braces {}",
+              options: ["Indentation (whitespace)", "Semicolons", "HTML-style tags", "Square brackets"],
               correctIndex: 0,
-              explanation: "f-strings (Formatted String Literals) are the fastest, cleanest, and standard way to format strings in modern Python.",
-              conceptHint: "Look for the syntax starting with an 'f'.",
+              explanation: "Python uses uniform indentation to define code blocks.",
+              conceptHint: "Whitespace matters in Python.",
+            },
+            {
+              id: "py-q1-2",
+              question: "What is the standard naming convention for variables in Python?",
+              options: ["snake_case", "camelCase", "PascalCase", "kebab-case"],
+              correctIndex: 0,
+              explanation: "PEP 8 specifies snake_case for functions and variables.",
+              conceptHint: "Underscores between lowercase words.",
             },
           ],
         },
       },
       {
         id: "py-mod-2",
-        moduleId: "control-flow",
+        moduleId: "data-types-and-operators",
         courseId: "python-fundamentals",
-        title: "Control Flow & Loops",
-        description: "Direct program execution with boolean logic, if/elif/else conditions, while loops, and for loops.",
+        title: "Data Types & Operators",
+        description: "Integers, floats, booleans, strings, type casting, arithmetic, and logical operators.",
         order: 2,
         estimatedMinutes: 50,
         lessons: [
           {
-            id: "py-les-4",
-            lessonId: "conditional-logic",
-            moduleId: "control-flow",
+            id: "py-les-2-1",
+            lessonId: "numeric-types-and-casting",
+            moduleId: "data-types-and-operators",
             courseId: "python-fundamentals",
-            title: "Conditionals: if, elif, else",
-            summary: "Make decisions in code using relational operators and logical chaining.",
+            title: "Numeric Types & Type Casting",
+            summary: "Convert between string and numeric types using int() and float().",
             order: 1,
             estimatedMinutes: 15,
-            concept: `### Branching Logic
-
-Conditionals allow programs to branch and execute different blocks based on whether a condition evaluates to \`True\` or \`False\`.
-
-Relational Operators:
-* \`==\` (equal to)
-* \`!=\` (not equal)
-* \`>\`, \`<\`, \`>=\`, \`<=\`
-
-Logical Operators:
-* \`and\` - True if both conditions are True
-* \`or\` - True if at least one condition is True
-* \`not\` - Inverts the boolean value`,
-            conceptPoints: [
-              "Colons ':' must follow if, elif, and else headers.",
-              "elif handles multiple mutually exclusive conditions.",
-              "else is the fallback executed when no prior conditions are met.",
-            ],
+            concept: `### Numeric Primitives & Casting\n\n* \`int\`: Whole numbers\n* \`float\`: Real numbers with decimal precision\n* Casting: Convert types with \`int("42")\` or \`str(100)\`.`,
+            conceptPoints: ["type() inspects the runtime type.", "int() truncates floats towards zero."],
             example: {
-              title: "Checking Duel Qualification",
+              title: "Casting Example",
               language: "python",
-              code: `score = 85
-
-if score >= 90:
-    grade = "A+"
-elif score >= 80:
-    grade = "A"
-elif score >= 70:
-    grade = "B"
-else:
-    grade = "Review"
-
-print(f"Final Grade: {grade}")`,
-              output: "Final Grade: A",
-              explanation: "Because 85 >= 80 is the first condition to evaluate to True, 'grade = A' executes and the remaining branches are skipped.",
+              code: `raw_val = "50"\nnum_val = int(raw_val)\nprint(num_val * 2)`,
+              output: "100",
+              explanation: "Converting string '50' to integer allows arithmetic multiplication.",
             },
             tryIt: {
-              instructions: "Write an if/else block that checks if `number = 14` is even. If it is even, print 'Even', otherwise print 'Odd'.",
+              instructions: "Convert the string '25' to integer, multiply by 4, and print the result.",
               type: "code",
-              starterCode: `number = 14
-# Write your if/else check:
-`,
-              solutionCode: `number = 14
-if number % 2 == 0:
-    print("Even")
-else:
-    print("Odd")`,
-              expectedOutput: "Even",
-              hint: "Use the modulo operator: number % 2 == 0 checks for even numbers.",
+              starterCode: `s = "25"\n# Convert and multiply:\n`,
+              solutionCode: `s = "25"\nprint(int(s) * 4)`,
+              expectedOutput: "100",
             },
-          },
-          {
-            id: "py-les-5",
-            lessonId: "for-loops-and-ranges",
-            moduleId: "control-flow",
-            courseId: "python-fundamentals",
-            title: "For Loops & Range",
-            summary: "Iterate over numbers, sequences, and lists predictably.",
-            order: 2,
-            estimatedMinutes: 15,
-            concept: `### Definite Iteration with \`for\`
-
-A \`for\` loop in Python iterates over members of any sequence (such as a string, list, or range).
-
-The \`range()\` Function:
-* \`range(5)\` yields \`0, 1, 2, 3, 4\` (stop at 5, non-inclusive)
-* \`range(2, 6)\` yields \`2, 3, 4, 5\` (start at 2, stop at 6)
-* \`range(0, 10, 2)\` yields \`0, 2, 4, 6, 8\` (step of 2)`,
-            conceptPoints: [
-              "range() generates numbers on demand without allocating extra memory.",
-              "Use 'break' to exit a loop early.",
-              "Use 'continue' to skip to the next iteration.",
-            ],
-            example: {
-              title: "Summing Numbers with a Loop",
-              language: "python",
-              code: `total = 0
-for i in range(1, 6):
-    total += i
-    print(f"Added {i}, total is now {total}")
-
-print("Final Total:", total)`,
-              output: "Added 1, total is now 1\nAdded 2, total is now 3\nAdded 3, total is now 6\nAdded 4, total is now 10\nAdded 5, total is now 15\nFinal Total: 15",
-              explanation: "The loop runs 5 times for numbers 1 through 5, accumulating the running sum.",
-            },
-            tryIt: {
-              instructions: "Write a for loop using `range()` that calculates the sum of all even numbers between 2 and 10 (inclusive) and prints the result.",
-              type: "code",
-              starterCode: `# Calculate sum of evens from 2 to 10
-even_sum = 0
-# Your loop here:
-
-print(even_sum)`,
-              solutionCode: `even_sum = 0
-for n in range(2, 11, 2):
-    even_sum += n
-print(even_sum)`,
-              expectedOutput: "30",
-              hint: "Use range(2, 11, 2) to get 2, 4, 6, 8, 10.",
-            },
-          },
-        ],
-        practiceActivities: [
-          {
-            id: "py-p-4",
-            moduleId: "control-flow",
-            courseId: "python-fundamentals",
-            title: "Build a FizzBuzz Generator",
-            type: "write-code",
-            prompt: "Implement standard FizzBuzz logic for numbers 1 to 5.",
-            instructions: "Write a loop from 1 to 5. For 3 print 'Fizz', for 5 print 'Buzz', otherwise print the number.",
-            starterCode: `for i in range(1, 6):
-    # Complete the logic:
-    pass`,
-            solutionCode: `for i in range(1, 6):
-    if i % 3 == 0:
-        print("Fizz")
-    elif i % 5 == 0:
-        print("Buzz")
-    else:
-        print(i)`,
-            explanation: "Checking modulo allows you to identify divisibility before falling back to the number.",
-            xp: 40,
           },
         ],
         quiz: {
           id: "py-quiz-2",
-          quizId: "control-flow-quiz",
-          moduleId: "control-flow",
-          courseId: "python-fundamentals",
-          title: "Control Flow Checkpoint Quiz",
-          description: "Verify your mastery of conditional branches, loops, and iteration.",
-          passingScorePercent: 70,
-          xpReward: 120,
+          quizId: "quiz_data-types-and-operators",
+          title: "Data Types & Operators Checkpoint Quiz",
+          description: "Pass to unlock Control Flow.",
+          passingScorePercent: 66,
+          xpReward: 100,
           questions: [
             {
-              id: "q2_1",
-              question: "What numbers are generated by range(3, 7)?",
-              options: ["3, 4, 5, 6, 7", "3, 4, 5, 6", "4, 5, 6, 7", "3, 7"],
-              correctIndex: 1,
-              explanation: "range(start, stop) starts at 'start' (inclusive) and ends at 'stop - 1' (exclusive).",
-              conceptHint: "The stop value is not included.",
-            },
-            {
-              id: "q2_2",
-              question: "Which keyword immediately exits the enclosing loop?",
-              options: ["continue", "pass", "break", "return"],
-              correctIndex: 2,
-              explanation: "'break' terminates the loop execution immediately.",
-              conceptHint: "Stops the loop completely.",
-            },
-            {
-              id: "q2_3",
-              question: "What is the boolean result of: not (5 > 2 and 3 == 4)?",
-              options: ["True", "False", "None", "TypeError"],
+              id: "py-q2-1",
+              question: "What is the result of the expression 17 // 5 in Python?",
+              options: ["3", "3.4", "2", "3.0"],
               correctIndex: 0,
-              explanation: "(5 > 2) is True, (3 == 4) is False. True and False is False. not(False) becomes True.",
-              conceptHint: "Evaluate inside parentheses first.",
+              explanation: "The // operator performs floor division, returning the integer quotient 3.",
+              conceptHint: "Floor division discards remainder.",
+            },
+            {
+              id: "py-q2-2",
+              question: "Which function converts a string '99' to integer 99?",
+              options: ["int('99')", "toInt('99')", "Integer.parse('99')", "cast_int('99')"],
+              correctIndex: 0,
+              explanation: "int() converts compatible strings to integers.",
+              conceptHint: "Standard Python type conversion function.",
             },
           ],
         },
       },
       {
         id: "py-mod-3",
-        moduleId: "functions-data-structures",
+        moduleId: "control-flow",
         courseId: "python-fundamentals",
-        title: "Functions & Data Structures",
-        description: "Write clean reusable functions with arguments and return values. Master Lists and Dictionaries.",
+        title: "Control Flow",
+        description: "Conditional branching with if/elif/else, while loops, for loops, and range generation.",
         order: 3,
         estimatedMinutes: 55,
         lessons: [
           {
-            id: "py-les-6",
-            lessonId: "defining-functions",
-            moduleId: "functions-data-structures",
+            id: "py-les-3-1",
+            lessonId: "branching-and-loops",
+            moduleId: "control-flow",
             courseId: "python-fundamentals",
-            title: "Defining Reusable Functions",
-            summary: "Encapsulate logic with def, parameters, default arguments, and return statements.",
+            title: "Conditionals & Iteration",
+            summary: "Direct code execution path with boolean conditions and for loops.",
             order: 1,
-            estimatedMinutes: 18,
-            concept: `### Clean Functions with \`def\`
-
-Functions allow you to reuse code, reduce repetition, and break down complex problems into modular components.
-
-Structure:
-\`\`\`python
-def function_name(param1, param2=default_val):
-    # computations
-    return result
-\`\`\`
-`,
-            conceptPoints: [
-              "Functions are defined with the 'def' keyword.",
-              "A function without an explicit return statement returns 'None'.",
-              "Parameters can have default fallback values.",
-            ],
-            example: {
-              title: "Calculating Circle Area",
-              language: "python",
-              code: `def calculate_area(radius, pi=3.14159):
-    return pi * (radius ** 2)
-
-print("Radius 5 area:", calculate_area(5))
-print("Custom pi:", calculate_area(5, 3.14))`,
-              output: "Radius 5 area: 78.53975\nCustom pi: 78.5",
-              explanation: "The function calculates area using the formula and returns the computed float.",
-            },
-            tryIt: {
-              instructions: "Write a function `is_even(n)` that returns `True` if `n` is even and `False` otherwise. Test it with `print(is_even(8))`.",
-              type: "code",
-              starterCode: `# Define is_even function:
-def is_even(n):
-    pass
-
-print(is_even(8))`,
-              solutionCode: `def is_even(n):
-    return n % 2 == 0
-
-print(is_even(8))`,
-              expectedOutput: "True",
-              hint: "return n % 2 == 0",
-            },
-          },
-          {
-            id: "py-les-7",
-            lessonId: "lists-and-dictionaries",
-            moduleId: "functions-data-structures",
-            courseId: "python-fundamentals",
-            title: "Lists & Dictionaries",
-            summary: "Organize collections with ordered lists and key-value dictionary mappings.",
-            order: 2,
             estimatedMinutes: 20,
-            concept: `### Collections in Python
-
-* **Lists (\`[]\`)**: Ordered, mutable sequences of items.
-  * \`.append(x)\`, \`.pop()\`, \`len(items)\`, indexing \`items[0]\`.
-* **Dictionaries (\`{}\`)**: Key-value hash maps for fast lookup.
-  * \`user["email"]\`, \`user.get("age", 0)\`, \`.keys()\`, \`.values()\`.`,
-            conceptPoints: [
-              "Lists can hold mixed data types.",
-              "Dictionary keys must be immutable (like strings or integers).",
-              "Use 'in' keyword to check membership in lists and dictionaries.",
-            ],
+            concept: `### Conditionals & Loops\n\nUse \`if\`, \`elif\`, and \`else\` to branch execution. Use \`for x in range(n)\` for deterministic iteration.`,
+            conceptPoints: ["elif is short for 'else if'.", "range(n) runs from 0 to n-1."],
             example: {
-              title: "Student Roster with Dictionaries",
+              title: "Loop Example",
               language: "python",
-              code: `students = [
-    {"name": "Maya", "xp": 1400},
-    {"name": "Leo", "xp": 1850}
-]
-
-for s in students:
-    print(f"{s['name']} has {s['xp']} XP")`,
-              output: "Maya has 1400 XP\nLeo has 1850 XP",
-              explanation: "A list of dictionaries is the foundational pattern for managing tabular and JSON records.",
+              code: `for i in range(3):\n    print(f"Step {i}")`,
+              output: "Step 0\nStep 1\nStep 2",
+              explanation: "Loop iterates 3 times with indices 0, 1, 2.",
             },
             tryIt: {
-              instructions: "Create a list `scores = [85, 92, 78]`, append `95` to it, and print the maximum value using `max()`.",
+              instructions: "Write a for loop that prints numbers 1, 2, 3 using range(1, 4).",
               type: "code",
-              starterCode: `scores = [85, 92, 78]
-# Append 95 and print max:
-`,
-              solutionCode: `scores = [85, 92, 78]
-scores.append(95)
-print(max(scores))`,
-              expectedOutput: "95",
-              hint: "scores.append(95) then print(max(scores))",
+              starterCode: `# Loop from 1 to 3:\n`,
+              solutionCode: `for i in range(1, 4):\n    print(i)`,
+              expectedOutput: "1\n2\n3",
             },
-          },
-        ],
-        practiceActivities: [
-          {
-            id: "py-p-5",
-            moduleId: "functions-data-structures",
-            courseId: "python-fundamentals",
-            title: "Filter High Scorers",
-            type: "write-code",
-            prompt: "Write a function that filters students with score >= 80.",
-            instructions: "Implement `get_top_students(scores_dict)` to return a list of student names whose score is 80 or higher.",
-            starterCode: `def get_top_students(scores):
-    # Return list of names with score >= 80
-    return [name for name, score in scores.items() if score >= 80]
-
-print(get_top_students({"Alice": 90, "Bob": 65, "Charlie": 85}))`,
-            solutionCode: `def get_top_students(scores):
-    return [name for name, score in scores.items() if score >= 80]
-
-print(get_top_students({"Alice": 90, "Bob": 65, "Charlie": 85}))`,
-            explanation: "List comprehension or a standard for loop iterates through dictionary .items() and filters keys.",
-            xp: 50,
           },
         ],
         quiz: {
           id: "py-quiz-3",
-          quizId: "functions-data-structures-quiz",
-          moduleId: "functions-data-structures",
-          courseId: "python-fundamentals",
-          title: "Functions & Structures Checkpoint Quiz",
-          description: "Test your knowledge of functions, lists, dictionaries, and memory references.",
-          passingScorePercent: 70,
-          xpReward: 150,
-          questions: [
-            {
-              id: "q3_1",
-              question: "How do you add an item to the end of a Python list?",
-              options: ["list.push(item)", "list.add(item)", "list.append(item)", "list.insert(item)"],
-              correctIndex: 2,
-              explanation: "Python lists use the .append() method to insert elements at the end.",
-              conceptHint: "Method name starts with 'app'.",
-            },
-            {
-              id: "q3_2",
-              question: "What is the safe way to retrieve a dictionary value without throwing a KeyError if the key does not exist?",
-              options: ["dict.fetch('key')", "dict.get('key', default)", "dict['key']", "dict.find('key')"],
-              correctIndex: 1,
-              explanation: "dict.get('key', default) returns the default fallback if the key is not present.",
-              conceptHint: "Three-letter method name.",
-            },
-            {
-              id: "q3_3",
-              question: "What will a function return if it executes without reaching a return statement?",
-              options: ["0", "False", "None", "undefined"],
-              correctIndex: 2,
-              explanation: "In Python, functions without an explicit return statement automatically return None.",
-              conceptHint: "Python's null representation.",
-            },
-          ],
-        },
-      },
-    ],
-  },
-
-  // ── 2. JAVASCRIPT MODERN CORE ──
-  {
-    id: "javascript-modern-core",
-    courseId: "javascript-modern-core",
-    title: "JavaScript Modern Core",
-    slug: "javascript-modern-core",
-    language: "javascript",
-    level: "Beginner",
-    tagline: "Build modern web and backend applications with ES6+, async/await, and functional primitives.",
-    description: "Learn JavaScript the modern way. Master variables, closures, arrow functions, promises, async/await, array transformations, and event-driven patterns.",
-    icon: "⚡",
-    bannerGradient: "from-amber-500/20 via-yellow-500/10 to-transparent",
-    estimatedHours: 6,
-    totalXp: 800,
-    whatYouWillLearn: [
-      "ES6+ syntax: let/const, destructuring, template literals, spread operator",
-      "Higher-order array methods: map, filter, reduce, find",
-      "Asynchronous programming with Promises and async/await",
-      "Objects, prototypes, and modern ES classes",
-    ],
-    modules: [
-      {
-        id: "js-mod-1",
-        moduleId: "js-essentials",
-        courseId: "javascript-modern-core",
-        title: "JavaScript Essentials & ES6+",
-        description: "Variables (let, const), data types, template literals, and arrow functions.",
-        order: 1,
-        estimatedMinutes: 40,
-        lessons: [
-          {
-            id: "js-les-1",
-            lessonId: "let-const-and-types",
-            moduleId: "js-essentials",
-            courseId: "javascript-modern-core",
-            title: "let, const & Primitive Types",
-            summary: "Learn modern variable declaration and understand value vs reference types.",
-            order: 1,
-            estimatedMinutes: 12,
-            concept: `### Modern Variable Declarations
-
-In modern JavaScript (ES6+), we avoid \`var\` in favor of block-scoped declarations:
-* **\`const\`**: Default choice. Creates an immutable binding (the variable cannot be reassigned).
-* **\`let\`**: Use when you need to reassign the variable (e.g. inside counters and loops).`,
-            conceptPoints: [
-              "const and let prevent accidental variable hoisting bugs.",
-              "Template literals use backticks (\\`) for multi-line and interpolation (${expr}).",
-            ],
-            example: {
-              title: "Template Literals and const",
-              language: "javascript",
-              code: `const platform = "Built In Tech";
-let activeUsers = 1250;
-activeUsers += 50;
-
-console.log(\`\${platform} has \${activeUsers} active learners.\`);`,
-              output: "Built In Tech has 1300 active learners.",
-              explanation: "Template literals allow variable interpolation using ${variable}.",
-            },
-            tryIt: {
-              instructions: "Declare a `const language = 'JavaScript'` and `let score = 95`. Print `Mastering JavaScript with 95%` using a template literal.",
-              type: "code",
-              starterCode: `// Write your code:
-`,
-              solutionCode: `const language = "JavaScript";
-let score = 95;
-console.log(\`Mastering \${language} with \${score}%\`);`,
-              expectedOutput: "Mastering JavaScript with 95%",
-              hint: "console.log(`Mastering ${language} with ${score}%`)",
-            },
-          },
-        ],
-        practiceActivities: [
-          {
-            id: "js-p-1",
-            moduleId: "js-essentials",
-            courseId: "javascript-modern-core",
-            title: "Arrow Function Transform",
-            type: "write-code",
-            prompt: "Convert a traditional function to an arrow function.",
-            instructions: "Create a const `double = (n) => n * 2` and test with `console.log(double(14))`.",
-            starterCode: `// Convert to arrow function:
-const double = (n) => n * 2;
-console.log(double(14));`,
-            solutionCode: `const double = (n) => n * 2;
-console.log(double(14));`,
-            explanation: "Arrow functions provide concise syntax for returning expression values.",
-            xp: 30,
-          },
-        ],
-        quiz: {
-          id: "js-quiz-1",
-          quizId: "js-essentials-quiz",
-          moduleId: "js-essentials",
-          courseId: "javascript-modern-core",
-          title: "JavaScript Essentials Checkpoint Quiz",
-          description: "Pass this quiz to prove your grasp of ES6 variable scoping and modern syntax.",
-          passingScorePercent: 70,
+          quizId: "quiz_control-flow",
+          title: "Control Flow Checkpoint Quiz",
+          description: "Pass to unlock Data Structures.",
+          passingScorePercent: 66,
           xpReward: 100,
           questions: [
             {
-              id: "jsq1",
-              question: "What happens if you try to reassign a variable declared with 'const'?",
-              options: [
-                "It silently fails",
-                "It throws a TypeError at runtime",
-                "It converts the variable to let",
-                "It creates a global variable",
-              ],
-              correctIndex: 1,
-              explanation: "Reassigning a const identifier triggers a TypeError: Assignment to constant variable.",
-              conceptHint: "const protects variable reassignment.",
-            },
-            {
-              id: "jsq2",
-              question: "Which token is used to enclose template literals?",
-              options: ["Single quotes ' '", "Double quotes \" \"", "Backticks ` `", "Parentheses ( )"],
-              correctIndex: 2,
-              explanation: "Backticks allow interpolation with ${expression}.",
-              conceptHint: "The key under Escape on most keyboards.",
+              id: "py-q3-1",
+              question: "What does range(2, 6) output when iterated?",
+              options: ["2, 3, 4, 5", "2, 3, 4, 5, 6", "0, 1, 2, 3, 4, 5", "2, 4, 6"],
+              correctIndex: 0,
+              explanation: "range(start, stop) excludes the stop value.",
+              conceptHint: "Upper bound is exclusive.",
             },
           ],
         },
       },
       {
-        id: "js-mod-2",
-        moduleId: "async-and-arrays",
-        courseId: "javascript-modern-core",
-        title: "Array Methods & Async Programming",
-        description: "Transform data with map, filter, reduce and handle async tasks with async/await.",
-        order: 2,
+        id: "py-mod-4",
+        moduleId: "data-structures",
+        courseId: "python-fundamentals",
+        title: "Data Structures",
+        description: "Lists, dictionaries, tuples, sets, slicing, and list/dict comprehensions.",
+        order: 4,
+        estimatedMinutes: 60,
+        lessons: [
+          {
+            id: "py-les-4-1",
+            lessonId: "collections-overview",
+            moduleId: "data-structures",
+            courseId: "python-fundamentals",
+            title: "Lists, Dictionaries & Sets",
+            summary: "Store ordered lists, hash-based key-value dictionaries, and unique sets.",
+            order: 1,
+            estimatedMinutes: 20,
+            concept: `### Python Collections\n\n* **List (\`[]\`)**: Ordered, mutable sequence.\n* **Dictionary (\`{}\`)**: Key-value hash map with O(1) average lookup.\n* **Set (\`set()\`)**: Unordered unique elements.\n* **Tuple (\`()\` )**: Immutable sequence.`,
+            conceptPoints: ["List comprehensions provide concise filtering.", "Dictionaries use hash maps internally."],
+            example: {
+              title: "Dictionary Usage",
+              language: "python",
+              code: `user = {"name": "Alice", "level": 3}\nprint(user["name"])`,
+              output: "Alice",
+              explanation: "Dictionary lookup by key is O(1).",
+            },
+            tryIt: {
+              instructions: "Create a list `nums = [1, 2, 3]` and print its length using len(nums).",
+              type: "code",
+              starterCode: `# Create list and print length\n`,
+              solutionCode: `nums = [1, 2, 3]\nprint(len(nums))`,
+              expectedOutput: "3",
+            },
+          },
+        ],
+        quiz: {
+          id: "py-quiz-4",
+          quizId: "quiz_data-structures",
+          title: "Data Structures Checkpoint Quiz",
+          description: "Pass to unlock Functions.",
+          passingScorePercent: 66,
+          xpReward: 100,
+          questions: [
+            {
+              id: "py-q4-1",
+              question: "Which collection guarantees unique elements with average O(1) membership testing?",
+              options: ["Set", "List", "Tuple", "Array"],
+              correctIndex: 0,
+              explanation: "Sets utilize hash tables to enforce uniqueness and O(1) lookups.",
+              conceptHint: "Mathematical set theory.",
+            },
+          ],
+        },
+      },
+      {
+        id: "py-mod-5",
+        moduleId: "functions",
+        courseId: "python-fundamentals",
+        title: "Functions",
+        description: "Parameters, *args, **kwargs, return values, scope, decorators, and generators.",
+        order: 5,
+        estimatedMinutes: 55,
+        lessons: [
+          {
+            id: "py-les-5-1",
+            lessonId: "functions-and-generators",
+            moduleId: "functions",
+            courseId: "python-fundamentals",
+            title: "Reusable Functions & Generators",
+            summary: "Modular code with def, higher-order functions, and lazy generators with yield.",
+            order: 1,
+            estimatedMinutes: 20,
+            concept: `### Functions & Generators\n\nFunctions encapsulate reusable logic with \`def\`. The \`yield\` keyword creates memory-efficient stream generators.`,
+            conceptPoints: ["Default parameter values are evaluated once at definition.", "yield suspends function state."],
+            example: {
+              title: "Function Example",
+              language: "python",
+              code: `def double(x):\n    return x * 2\n\nprint(double(21))`,
+              output: "42",
+              explanation: "The function returns the doubled input.",
+            },
+            tryIt: {
+              instructions: "Define a function `greet(name)` that returns `f'Hello {name}'` and print `greet('Tech')`.",
+              type: "code",
+              starterCode: `# Define greet function:\n`,
+              solutionCode: `def greet(name):\n    return f"Hello {name}"\n\nprint(greet("Tech"))`,
+              expectedOutput: "Hello Tech",
+            },
+          },
+        ],
+        quiz: {
+          id: "py-quiz-5",
+          quizId: "quiz_functions",
+          title: "Functions Checkpoint Quiz",
+          description: "Pass to unlock Modules & File I/O.",
+          passingScorePercent: 66,
+          xpReward: 100,
+          questions: [
+            {
+              id: "py-q5-1",
+              question: "What keyword is used to create a generator function in Python?",
+              options: ["yield", "return", "generate", "stream"],
+              correctIndex: 0,
+              explanation: "yield suspends execution and returns a generator iterator.",
+              conceptHint: "Lazy evaluation keyword.",
+            },
+          ],
+        },
+      },
+      {
+        id: "py-mod-6",
+        moduleId: "modules-and-file-io",
+        courseId: "python-fundamentals",
+        title: "Modules & File I/O",
+        description: "Importing modules, package layout, context managers (with open), and JSON serialization.",
+        order: 6,
         estimatedMinutes: 50,
         lessons: [
           {
-            id: "js-les-2",
-            lessonId: "array-transformations",
-            moduleId: "async-and-arrays",
-            courseId: "javascript-modern-core",
-            title: "Functional Array Transformations",
-            summary: "Master map(), filter(), and reduce() without mutating original arrays.",
-            order: 1,
-            estimatedMinutes: 20,
-            concept: `### Modern Array Processing
-
-* \`.map(fn)\`: Transforms every item into a new array.
-* \`.filter(fn)\`: Selects items that pass a predicate test.
-* \`.reduce(fn, init)\`: Accumulates items into a single final value.`,
-            conceptPoints: [
-              "These methods return new arrays rather than mutating the original array.",
-              "They can be cleanly chained together.",
-            ],
-            example: {
-              title: "Chaining Array Methods",
-              language: "javascript",
-              code: `const numbers = [1, 2, 3, 4, 5, 6];
-const sumOfEvenSquares = numbers
-  .filter(n => n % 2 === 0)
-  .map(n => n * n)
-  .reduce((acc, curr) => acc + curr, 0);
-
-console.log("Result:", sumOfEvenSquares);`,
-              output: "Result: 56",
-              explanation: "Even numbers (2, 4, 6) are squared (4, 16, 36) and summed (4 + 16 + 36 = 56).",
-            },
-            tryIt: {
-              instructions: "Given `const nums = [10, 25, 30, 45, 50]`, filter numbers greater than or equal to 30 and print the resulting array with `console.log()`.",
-              type: "code",
-              starterCode: `const nums = [10, 25, 30, 45, 50];
-// Filter and print:
-`,
-              solutionCode: `const nums = [10, 25, 30, 45, 50];
-const filtered = nums.filter(n => n >= 30);
-console.log(filtered);`,
-              expectedOutput: "[ 30, 45, 50 ]",
-              hint: "Use nums.filter(n => n >= 30)",
-            },
-          },
-        ],
-        practiceActivities: [],
-        quiz: {
-          id: "js-quiz-2",
-          quizId: "async-and-arrays-quiz",
-          moduleId: "async-and-arrays",
-          courseId: "javascript-modern-core",
-          title: "Async & Arrays Checkpoint Quiz",
-          description: "Prove your mastery of array functional pipelines and asynchronous execution.",
-          passingScorePercent: 70,
-          xpReward: 120,
-          questions: [
-            {
-              id: "jq3",
-              question: "What does the array map() method return?",
-              options: [
-                "The original mutated array",
-                "A new array of the same length containing transformed elements",
-                "A single accumulated value",
-                "A boolean indicator",
-              ],
-              correctIndex: 1,
-              explanation: "map() constructs and returns a new array with the return value of the callback applied to every element.",
-              conceptHint: "Transformation creates a fresh array.",
-            },
-          ],
-        },
-      },
-    ],
-  },
-
-  // ── 3. SQL & RELATIONAL DATABASES ──
-  {
-    id: "sql-mastery",
-    courseId: "sql-mastery",
-    title: "SQL & Relational Databases",
-    slug: "sql-mastery",
-    language: "sql",
-    level: "Beginner",
-    tagline: "Query, aggregate, join, and structure relational datasets with confidence.",
-    description: "From basic SELECT statements to complex multi-table JOINs, subqueries, group aggregations, and data modeling best practices.",
-    icon: "🗄️",
-    bannerGradient: "from-sky-500/20 via-indigo-500/10 to-transparent",
-    estimatedHours: 5,
-    totalXp: 750,
-    whatYouWillLearn: [
-      "SELECT, WHERE, ORDER BY, LIMIT query fundamentals",
-      "Aggregation with COUNT, SUM, AVG, and GROUP BY / HAVING",
-      "Relational multi-table JOINs (INNER, LEFT, RIGHT, FULL)",
-      "Subqueries, CTEs (Common Table Expressions), and indexing",
-    ],
-    modules: [
-      {
-        id: "sql-mod-1",
-        moduleId: "sql-basics",
-        courseId: "sql-mastery",
-        title: "SQL Query Basics & Filtering",
-        description: "Master SELECT, WHERE, ORDER BY, DISTINCT, and pattern matching.",
-        order: 1,
-        estimatedMinutes: 35,
-        lessons: [
-          {
-            id: "sql-les-1",
-            lessonId: "select-and-where",
-            moduleId: "sql-basics",
-            courseId: "sql-mastery",
-            title: "SELECT, FROM & WHERE",
-            summary: "Extract specific columns and filter rows matching exact conditions.",
-            order: 1,
-            estimatedMinutes: 12,
-            concept: `### The Core SQL SELECT Query
-
-SQL (Structured Query Language) is the declarative language for relational databases.
-
-Query Structure:
-\`\`\`sql
-SELECT column1, column2
-FROM table_name
-WHERE condition
-ORDER BY column1 DESC
-LIMIT 10;
-\`\`\``,
-            conceptPoints: [
-              "SELECT specifies what columns to retrieve (* retrieves all).",
-              "WHERE filters records before grouping or sorting.",
-              "SQL keywords are case-insensitive by convention, but uppercase is standard.",
-            ],
-            example: {
-              title: "Filtering Active Developers",
-              language: "sql",
-              code: `-- Retrieve high-XP developers
-SELECT username, xp_points, country
-FROM users
-WHERE xp_points > 1000 AND status = 'active'
-ORDER BY xp_points DESC
-LIMIT 5;`,
-              output: "username | xp_points | country\nalex_dev | 2450      | USA\nchen_k   | 2100      | SGP\nsara_m   | 1890      | DEU",
-              explanation: "Retrieves top 5 active users with over 1000 XP ordered from highest to lowest.",
-            },
-            tryIt: {
-              instructions: "Write a query to select `title` and `xp` from the `problems` table where `difficulty = 'Easy'`.",
-              type: "code",
-              starterCode: `-- Write your query:
-`,
-              solutionCode: `SELECT title, xp FROM problems WHERE difficulty = 'Easy';`,
-              expectedOutput: "SELECT title, xp FROM problems WHERE difficulty = 'Easy';",
-              hint: "SELECT title, xp FROM problems WHERE difficulty = 'Easy';",
-            },
-          },
-        ],
-        practiceActivities: [],
-        quiz: {
-          id: "sql-quiz-1",
-          quizId: "sql-basics-quiz",
-          moduleId: "sql-basics",
-          courseId: "sql-mastery",
-          title: "SQL Basics Checkpoint Quiz",
-          description: "Validate your knowledge of column selection, filtering clauses, and sorting.",
-          passingScorePercent: 70,
-          xpReward: 100,
-          questions: [
-            {
-              id: "sq1",
-              question: "Which clause is used to filter records in a standard SQL query?",
-              options: ["FILTER", "WHERE", "HAVING", "ORDER BY"],
-              correctIndex: 1,
-              explanation: "The WHERE clause specifies search conditions for rows returned by FROM.",
-              conceptHint: "Starts with W.",
-            },
-          ],
-        },
-      },
-    ],
-  },
-
-  // ── 4. HTML & CSS FOUNDATIONS ──
-  {
-    id: "html-css-foundations",
-    courseId: "html-css-foundations",
-    title: "HTML & CSS Foundations",
-    slug: "html-css-foundations",
-    language: "html",
-    level: "Beginner",
-    tagline: "Build accessible, responsive web interfaces with semantic markup and modern CSS.",
-    description: "Learn how the modern web is structured and styled. Covers semantic HTML5 elements, CSS Box Model, Flexbox, Grid, and responsive media queries.",
-    icon: "🎨",
-    bannerGradient: "from-rose-500/20 via-pink-500/10 to-transparent",
-    estimatedHours: 5,
-    totalXp: 700,
-    whatYouWillLearn: [
-      "Semantic HTML5: header, nav, main, section, article, footer",
-      "The CSS Box Model: margin, border, padding, and content",
-      "Modern layouts with CSS Flexbox and Grid",
-      "Responsive typography and mobile-first media queries",
-    ],
-    modules: [
-      {
-        id: "html-mod-1",
-        moduleId: "html-semantics",
-        courseId: "html-css-foundations",
-        title: "Semantic HTML5 & Structure",
-        description: "Build accessible document outlines using modern semantic tags.",
-        order: 1,
-        estimatedMinutes: 30,
-        lessons: [
-          {
-            id: "html-les-1",
-            lessonId: "semantic-tags",
-            moduleId: "html-semantics",
-            courseId: "html-css-foundations",
-            title: "Semantic Document Structure",
-            summary: "Use header, nav, main, and section to create clean accessible layouts.",
-            order: 1,
-            estimatedMinutes: 10,
-            concept: `### Why Semantics Matter
-
-Semantic HTML tags give meaning to webpage structure for browsers, screen readers, and search engines.
-
-Common Semantic Elements:
-* \`<header>\`: Introductory content or navigation banner.
-* \`<nav>\`: Set of navigation links.
-* \`<main>\`: Dominant content unique to the page.
-* \`<article>\`: Self-contained composition (like a blog post or product card).`,
-            conceptPoints: [
-              "Semantic tags improve accessibility (a11y) and SEO.",
-              "Only use one <main> tag per page.",
-            ],
-            example: {
-              title: "A Clean Semantic Page",
-              language: "html",
-              code: `<header>
-  <h1>Built In Tech</h1>
-  <nav>
-    <a href="/learn">Learn</a>
-    <a href="/duel">Duels</a>
-  </nav>
-</header>
-<main>
-  <h2>Welcome Learner</h2>
-  <p>Start your coding journey today.</p>
-</main>`,
-              output: "Rendered page outline with header, nav, and main landmarks.",
-              explanation: "Creates an accessible document hierarchy recognized by accessibility tools.",
-            },
-            tryIt: {
-              instructions: "Write a `<main>` container with an `<h1>` containing 'Python Course' and a `<p>` tag containing 'Learn the basics'.",
-              type: "code",
-              starterCode: `<!-- Write semantic HTML: -->
-`,
-              solutionCode: `<main>
-  <h1>Python Course</h1>
-  <p>Learn the basics</p>
-</main>`,
-              expectedOutput: "<main>\n  <h1>Python Course</h1>\n  <p>Learn the basics</p>\n</main>",
-              hint: "Wrap h1 and p inside <main>...</main>",
-            },
-          },
-        ],
-        practiceActivities: [],
-        quiz: {
-          id: "html-quiz-1",
-          quizId: "html-semantics-quiz",
-          moduleId: "html-semantics",
-          courseId: "html-css-foundations",
-          title: "HTML Semantics Checkpoint Quiz",
-          description: "Verify your understanding of document structure and semantic tags.",
-          passingScorePercent: 70,
-          xpReward: 90,
-          questions: [
-            {
-              id: "hq1",
-              question: "Which tag should wrap the primary unique content of a webpage?",
-              options: ["<section>", "<div>", "<main>", "<content>"],
-              correctIndex: 2,
-              explanation: "The <main> tag designates the central content unique to that page.",
-              conceptHint: "Main content landmark.",
-            },
-          ],
-        },
-      },
-    ],
-  },
-
-  // ── 5. TYPESCRIPT TYPED MASTERY ──
-  {
-    id: "typescript-mastery",
-    courseId: "typescript-mastery",
-    title: "TypeScript Typed Mastery",
-    slug: "typescript-mastery",
-    language: "typescript",
-    level: "Intermediate",
-    tagline: "Write rock-solid, type-safe applications with TypeScript generics and interfaces.",
-    description: "Scale your JavaScript applications with static types, interfaces, type narrowing, generics, union types, and modern utility types.",
-    icon: "🔷",
-    bannerGradient: "from-blue-500/20 via-sky-500/10 to-transparent",
-    estimatedHours: 6,
-    totalXp: 850,
-    whatYouWillLearn: [
-      "Basic types, type inference, and explicit type annotations",
-      "Interfaces vs Type Aliases",
-      "Generics and generic constraints",
-      "Utility types (Partial, Omit, Pick, Record)",
-    ],
-    modules: [
-      {
-        id: "ts-mod-1",
-        moduleId: "ts-type-system",
-        courseId: "typescript-mastery",
-        title: "Type System & Interfaces",
-        description: "Master interfaces, union types, and strict type checking.",
-        order: 1,
-        estimatedMinutes: 45,
-        lessons: [
-          {
-            id: "ts-les-1",
-            lessonId: "interfaces-and-types",
-            moduleId: "ts-type-system",
-            courseId: "typescript-mastery",
-            title: "Interfaces & Object Shapes",
-            summary: "Define contracts for data models and component props.",
+            id: "py-les-6-1",
+            lessonId: "file-io-and-context-managers",
+            moduleId: "modules-and-file-io",
+            courseId: "python-fundamentals",
+            title: "File I/O & Context Managers",
+            summary: "Safe file reading and writing using with open().",
             order: 1,
             estimatedMinutes: 15,
-            concept: `### Defining Contracts with Interfaces
-
-TypeScript adds static typing on top of JavaScript. An \`interface\` defines the required shape of an object.
-
-\`\`\`typescript
-interface UserProfile {
-  id: string;
-  username: string;
-  xp: number;
-  isActive?: boolean; // Optional property
-}
-\`\`\``,
-            conceptPoints: [
-              "Interfaces describe the contract for object structures.",
-              "Optional properties are marked with '?'",
-              "TypeScript type checks at compile time with zero runtime overhead.",
-            ],
+            concept: `### Context Managers\n\nThe \`with\` statement guarantees file handles are closed even if exceptions occur.`,
+            conceptPoints: ["with open('file.txt', 'r') as f: closes automatically."],
             example: {
-              title: "Strict User Model",
-              language: "typescript",
-              code: `interface DuelScore {
-  player: string;
-  testsPassed: number;
-  totalTests: number;
-  won: boolean;
-}
-
-function printScore(score: DuelScore): void {
-  console.log(\`\${score.player}: \${score.testsPassed}/\${score.totalTests} (Won: \${score.won})\`);
-}
-
-printScore({ player: "Nova", testsPassed: 5, totalTests: 5, won: true });`,
-              output: "Nova: 5/5 (Won: true)",
-              explanation: "The compiler guarantees that the object passed to printScore contains all required fields.",
+              title: "Context Manager Pattern",
+              language: "python",
+              code: `# Example pattern:\n# with open('data.txt', 'w') as f:\n#     f.write('content')\nprint("File safely closed via context manager.")`,
+              output: "File safely closed via context manager.",
+              explanation: "The __exit__ method executes automatically.",
             },
             tryIt: {
-              instructions: "Define an interface `Course` with `title: string` and `xp: number`. Create a variable `const myCourse: Course = { title: 'TypeScript', xp: 500 };` and print its title.",
+              instructions: "Print 'File I/O mastered' to the console.",
               type: "code",
-              starterCode: `// Define interface and variable:
-`,
-              solutionCode: `interface Course {
-  title: string;
-  xp: number;
-}
-const myCourse: Course = { title: "TypeScript", xp: 500 };
-console.log(myCourse.title);`,
-              expectedOutput: "TypeScript",
-              hint: "Define interface Course, assign object, then console.log(myCourse.title)",
+              starterCode: ``,
+              solutionCode: `print("File I/O mastered")`,
+              expectedOutput: "File I/O mastered",
             },
           },
         ],
-        practiceActivities: [],
         quiz: {
-          id: "ts-quiz-1",
-          quizId: "ts-type-system-quiz",
-          moduleId: "ts-type-system",
-          courseId: "typescript-mastery",
-          title: "TypeScript Checkpoint Quiz",
-          description: "Verify your understanding of type annotations and compile-time verification.",
-          passingScorePercent: 70,
+          id: "py-quiz-6",
+          quizId: "quiz_modules-and-file-io",
+          title: "Modules & File I/O Checkpoint Quiz",
+          description: "Pass to unlock OOP Basics.",
+          passingScorePercent: 66,
           xpReward: 100,
           questions: [
             {
-              id: "tq1",
-              question: "How do you mark a property as optional in a TypeScript interface?",
-              options: ["property: optional string", "property?: string", "optional property: string", "property!: string"],
-              correctIndex: 1,
-              explanation: "Adding ? after the property identifier marks it as optional (T | undefined).",
-              conceptHint: "Uses the question mark.",
+              id: "py-q6-1",
+              question: "Why should you use 'with open(...) as f:' over manual f.close()?",
+              options: [
+                "Guarantees the file is closed even if an exception occurs",
+                "Compresses the file automatically",
+                "Encrypts data on disk",
+                "Allows multiple writes simultaneously",
+              ],
+              correctIndex: 0,
+              explanation: "Context managers ensure resource finalization deterministically.",
+              conceptHint: "Deterministic resource cleanup.",
+            },
+          ],
+        },
+      },
+      {
+        id: "py-mod-7",
+        moduleId: "oop-basics",
+        courseId: "python-fundamentals",
+        title: "Object-Oriented Programming Basics",
+        description: "Classes, __init__, self, encapsulation, inheritance, and dunder methods (__str__, __repr__).",
+        order: 7,
+        estimatedMinutes: 60,
+        lessons: [
+          {
+            id: "py-les-7-1",
+            lessonId: "classes-and-instances",
+            moduleId: "oop-basics",
+            courseId: "python-fundamentals",
+            title: "Classes & Methods",
+            summary: "Create custom types with class, __init__, and self.",
+            order: 1,
+            estimatedMinutes: 20,
+            concept: `### Classes & Instances\n\nClasses are blueprints for creating objects. \`__init__\` initializes instance state.`,
+            conceptPoints: ["self references the current object instance."],
+            example: {
+              title: "Class Definition",
+              language: "python",
+              code: `class Player:\n    def __init__(self, name):\n        self.name = name\n\np = Player("Sam")\nprint(p.name)`,
+              output: "Sam",
+              explanation: "Creates an instance of Player and accesses its attribute.",
+            },
+            tryIt: {
+              instructions: "Instantiate a class `Bot` with attribute `id=1` and print `bot.id`.",
+              type: "code",
+              starterCode: `class Bot:\n    def __init__(self, id):\n        self.id = id\n\n# Create instance and print id:\n`,
+              solutionCode: `class Bot:\n    def __init__(self, id):\n        self.id = id\n\nb = Bot(1)\nprint(b.id)`,
+              expectedOutput: "1",
+            },
+          },
+        ],
+        quiz: {
+          id: "py-quiz-7",
+          quizId: "quiz_oop-basics",
+          title: "OOP Basics Checkpoint Quiz",
+          description: "Pass to unlock Testing & Type Hints.",
+          passingScorePercent: 66,
+          xpReward: 100,
+          questions: [
+            {
+              id: "py-q7-1",
+              question: "What is the constructor method in Python classes called?",
+              options: ["__init__", "constructor", "create", "__new__"],
+              correctIndex: 0,
+              explanation: "__init__ initializes newly instantiated class objects.",
+              conceptHint: "Dunder method with init.",
+            },
+          ],
+        },
+      },
+      {
+        id: "py-mod-8",
+        moduleId: "testing-and-type-hints",
+        courseId: "python-fundamentals",
+        title: "Testing & Type Hints",
+        description: "Type annotations, Optional, Union, pytest assertions, and defensive coding practices.",
+        order: 8,
+        estimatedMinutes: 50,
+        lessons: [
+          {
+            id: "py-les-8-1",
+            lessonId: "typing-and-testing",
+            moduleId: "testing-and-type-hints",
+            courseId: "python-fundamentals",
+            title: "Type Annotations & Testing",
+            summary: "Static type analysis and automated unit test assertions.",
+            order: 1,
+            estimatedMinutes: 20,
+            concept: `### Type Hints & Tests\n\nAdd type safety with \`def add(a: int, b: int) -> int:\` and write unit tests with \`assert\`.`,
+            conceptPoints: ["Type hints are validated with mypy.", "assert evaluates boolean conditions."],
+            example: {
+              title: "Type Annotations",
+              language: "python",
+              code: `def square(x: int) -> int:\n    return x * x\n\nassert square(4) == 16\nprint("Test passed: square(4) == 16")`,
+              output: "Test passed: square(4) == 16",
+              explanation: "Type hints provide IDE intelligence and assertions verify output.",
+            },
+            tryIt: {
+              instructions: "Write an assertion that 5 + 5 == 10 and print 'Validated'.",
+              type: "code",
+              starterCode: `# Write assert and print:\n`,
+              solutionCode: `assert 5 + 5 == 10\nprint("Validated")`,
+              expectedOutput: "Validated",
+            },
+          },
+        ],
+        quiz: {
+          id: "py-quiz-8",
+          quizId: "quiz_testing-and-type-hints",
+          title: "Testing & Type Hints Final Checkpoint Quiz",
+          description: "Pass to complete Python Fundamentals and graduate!",
+          passingScorePercent: 66,
+          xpReward: 200,
+          questions: [
+            {
+              id: "py-q8-1",
+              question: "Which type annotation indicates a function argument that can be either an int or None?",
+              options: ["Optional[int]", "List[int]", "Tuple[int]", "Any[int]"],
+              correctIndex: 0,
+              explanation: "Optional[int] denotes that the value may be an integer or None.",
+              conceptHint: "Nullable type annotation in Python typing.",
             },
           ],
         },
@@ -1169,120 +521,47 @@ console.log(myCourse.title);`,
     ],
   },
 
-  // ── 6. JAVA OBJECT-ORIENTED CORE ──
+  // ── 2. JAVA OBJECT-ORIENTED CORE (12 Modules) ──
   {
     id: "java-core",
     courseId: "java-core",
     title: "Java Object-Oriented Core",
     slug: "java-core",
     language: "java",
-    level: "Beginner",
-    tagline: "Build robust enterprise applications with OOP principles and strong typing.",
-    description: "Learn Java syntax, classes, inheritance, encapsulation, polymorphism, exceptions, and the Java Collections framework.",
+    level: "Intermediate",
+    tagline: "Enterprise Java: OOP, generics, collections, streams, lambdas, I/O, JUnit, and SOLID design patterns.",
+    description: "Deep dive into production-grade Java software engineering. Master JVM internals, reference types, polymorphism, functional streams, concurrency fundamentals, and architectural design patterns.",
     icon: "☕",
-    bannerGradient: "from-orange-500/20 via-red-500/10 to-transparent",
-    estimatedHours: 6,
-    totalXp: 800,
+    bannerGradient: "from-amber-500/20 via-orange-500/10 to-transparent",
+    estimatedHours: 16,
+    totalXp: 1800,
     whatYouWillLearn: [
-      "Java syntax, strongly typed variables, and methods",
-      "Object-Oriented Programming: Encapsulation, Inheritance, Polymorphism",
-      "ArrayList, HashMap, and the Java Collections Framework",
+      "JVM memory model: heap, stack, and garbage collection",
+      "Classes, encapsulation, immutability, and records",
+      "Dynamic polymorphism and interface contracts",
+      "Generic types, bounded wildcards, and type erasure",
+      "Collections Framework: Lists, Sets, Maps, and Queues",
+      "Functional programming with Lambdas, Streams, and Optional",
+      "NIO.2 file systems and automated testing with JUnit 5",
+      "SOLID architectural principles and GoF design patterns",
     ],
     modules: [
-      {
-        id: "java-mod-1",
-        moduleId: "java-basics",
-        courseId: "java-core",
-        title: "Java Syntax & Classes",
-        description: "Understand the JVM, public static void main, and creating classes.",
-        order: 1,
-        estimatedMinutes: 40,
-        lessons: [
-          {
-            id: "java-les-1",
-            lessonId: "java-classes",
-            moduleId: "java-basics",
-            courseId: "java-core",
-            title: "Java Program Entry & Classes",
-            summary: "Learn how Java programs execute through the main method.",
-            order: 1,
-            estimatedMinutes: 15,
-            concept: `### The Structure of a Java Program
-
-Every Java application is organized into classes and begins execution inside the \`main\` method:
-
-\`\`\`java
-public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello Built In Tech!");
-    }
-}
-\`\`\``,
-            conceptPoints: [
-              "Every statement must end with a semicolon ';'.",
-              "File names must match the public class name exactly.",
-            ],
-            example: {
-              title: "Basic Java Main",
-              language: "java",
-              code: `public class Main {
-    public static void main(String[] args) {
-        int level = 5;
-        System.out.println("Current Level: " + level);
-    }
-}`,
-              output: "Current Level: 5",
-              explanation: "Compiles and executes the entrypoint main method.",
-            },
-            tryIt: {
-              instructions: "Complete the Java main method to print 'Hello Java' to the console.",
-              type: "code",
-              starterCode: `public class Main {
-    public static void main(String[] args) {
-        // Print message here:
-    }
-}`,
-              solutionCode: `public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello Java");
-    }
-}`,
-              expectedOutput: "Hello Java",
-              hint: "System.out.println(\"Hello Java\");",
-            },
-          },
-        ],
-        practiceActivities: [],
-        quiz: {
-          id: "java-quiz-1",
-          quizId: "java-basics-quiz",
-          moduleId: "java-basics",
-          courseId: "java-core",
-          title: "Java Basics Checkpoint Quiz",
-          description: "Demonstrate your understanding of Java types and execution entry points.",
-          passingScorePercent: 70,
-          xpReward: 100,
-          questions: [
-            {
-              id: "jaq1",
-              question: "What is the correct entry point signature for a standard Java console application?",
-              options: [
-                "public void main()",
-                "public static void main(String[] args)",
-                "static void Main(string[] args)",
-                "function main()",
-              ],
-              correctIndex: 1,
-              explanation: "Java requires 'public static void main(String[] args)' as the entry point.",
-              conceptHint: "Standard JVM signature.",
-            },
-          ],
-        },
-      },
+      { id: "java-mod-1", moduleId: "java-fundamentals", courseId: "java-core", title: "Java Fundamentals", description: "JVM architecture, bytecode, primitive types, control structures, and methods.", order: 1, estimatedMinutes: 45, lessons: [], quiz: { id: "jq1", quizId: "quiz_java-fundamentals", title: "Java Fundamentals Checkpoint Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "jq1-1", question: "What creates the platform independence in Java?", options: ["JVM executing bytecode", "Direct machine code compilation", "WebAssembly engine", "JavaScript translation"], correctIndex: 0, explanation: "The Java Virtual Machine interprets platform-neutral bytecode." }] } },
+      { id: "java-mod-2", moduleId: "classes-and-objects", courseId: "java-core", title: "Classes & Objects", description: "Class declarations, constructors, heap memory allocation, and reference semantics.", order: 2, estimatedMinutes: 50, lessons: [], quiz: { id: "jq2", quizId: "quiz_classes-and-objects", title: "Classes & Objects Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "jq2-1", question: "Where are Java object instances allocated in memory?", options: ["Heap Memory", "Stack Memory", "Code Segment", "Register"], correctIndex: 0, explanation: "All Java objects are dynamically allocated on the garbage-collected heap." }] } },
+      { id: "java-mod-3", moduleId: "encapsulation", courseId: "java-core", title: "Encapsulation", description: "Access modifiers (private, protected, public), immutability, and records.", order: 3, estimatedMinutes: 45, lessons: [], quiz: { id: "jq3", quizId: "quiz_encapsulation", title: "Encapsulation Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "jq3-1", question: "Which modifier restricts visibility strictly to the declaring class?", options: ["private", "protected", "public", "package-private"], correctIndex: 0, explanation: "private members can only be accessed within the declaring class." }] } },
+      { id: "java-mod-4", moduleId: "inheritance", courseId: "java-core", title: "Inheritance", description: "Superclasses, method overriding with @Override, and the super keyword.", order: 4, estimatedMinutes: 50, lessons: [], quiz: { id: "jq4", quizId: "quiz_inheritance", title: "Inheritance Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "jq4-1", question: "Which keyword is used to inherit from a superclass in Java?", options: ["extends", "implements", "inherits", "super"], correctIndex: 0, explanation: "extends establishes an is-a inheritance relationship." }] } },
+      { id: "java-mod-5", moduleId: "polymorphism", courseId: "java-core", title: "Polymorphism", description: "Dynamic method dispatch, runtime polymorphism, upcasting, and instanceof.", order: 5, estimatedMinutes: 55, lessons: [], quiz: { id: "jq5", quizId: "quiz_polymorphism", title: "Polymorphism Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "jq5-1", question: "What mechanism enables runtime polymorphism in Java?", options: ["Dynamic method dispatch", "Static linking", "Preprocessor macros", "Stack allocation"], correctIndex: 0, explanation: "The JVM resolves overridden method calls based on the runtime instance type." }] } },
+      { id: "java-mod-6", moduleId: "abstraction-and-interfaces", courseId: "java-core", title: "Abstraction & Interfaces", description: "Abstract classes, interface contracts, and default methods.", order: 6, estimatedMinutes: 50, lessons: [], quiz: { id: "jq6", quizId: "quiz_abstraction-and-interfaces", title: "Abstraction & Interfaces Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "jq6-1", question: "Can a Java class implement multiple interfaces?", options: ["Yes", "No", "Only if abstract", "Only 2"], correctIndex: 0, explanation: "Java allows multiple interface implementation." }] } },
+      { id: "java-mod-7", moduleId: "generics", courseId: "java-core", title: "Generics", description: "Type parameters, generic classes & methods, bounded wildcards (? extends / ? super).", order: 7, estimatedMinutes: 60, lessons: [], quiz: { id: "jq7", quizId: "quiz_generics", title: "Generics Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "jq7-1", question: "What happens to Java generic type information at runtime?", options: ["Type erasure removes it", "Stored in vtable", "Converted to C structs", "Duplicate classes created"], correctIndex: 0, explanation: "Java uses type erasure for backwards compatibility." }] } },
+      { id: "java-mod-8", moduleId: "collections-framework", courseId: "java-core", title: "Collections Framework", description: "List (ArrayList, LinkedList), Set (HashSet, TreeSet), and Map (HashMap, TreeMap).", order: 8, estimatedMinutes: 60, lessons: [], quiz: { id: "jq8", quizId: "quiz_collections-framework", title: "Collections Framework Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "jq8-1", question: "What is the average time complexity of get(key) in a HashMap?", options: ["O(1)", "O(n)", "O(log n)", "O(n^2)"], correctIndex: 0, explanation: "HashMap provides constant-time average lookups." }] } },
+      { id: "java-mod-9", moduleId: "lambdas-and-functional-java", courseId: "java-core", title: "Lambdas & Functional Java", description: "Functional interfaces, lambda expressions, and method references.", order: 9, estimatedMinutes: 55, lessons: [], quiz: { id: "jq9", quizId: "quiz_lambdas-and-functional-java", title: "Lambdas & Functional Java Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "jq9-1", question: "How many abstract methods does a @FunctionalInterface have?", options: ["Exactly 1", "0", "Unlimited", "At least 2"], correctIndex: 0, explanation: "Functional interfaces must have exactly one single abstract method (SAM)." }] } },
+      { id: "java-mod-10", moduleId: "streams-and-optional", courseId: "java-core", title: "Streams & Optional", description: "Stream pipelines, map, filter, collectors, parallel streams, and Optional.", order: 10, estimatedMinutes: 60, lessons: [], quiz: { id: "jq10", quizId: "quiz_streams-and-optional", title: "Streams & Optional Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "jq10-1", question: "Which method is a terminal operation on a Java Stream?", options: ["collect()", "filter()", "map()", "distinct()"], correctIndex: 0, explanation: "collect() terminates stream processing and gathers results." }] } },
+      { id: "java-mod-11", moduleId: "io-and-junit-testing", courseId: "java-core", title: "I/O & JUnit Testing", description: "NIO.2 paths, files, streams, and unit testing with JUnit 5 assertions.", order: 11, estimatedMinutes: 55, lessons: [], quiz: { id: "jq11", quizId: "quiz_io-and-junit-testing", title: "I/O & JUnit Testing Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "jq11-1", question: "Which annotation marks a test method in JUnit 5?", options: ["@Test", "@TestCase", "@Run", "@Execute"], correctIndex: 0, explanation: "@Test denotes a unit test method in JUnit 5." }] } },
+      { id: "java-mod-12", moduleId: "solid-and-design-patterns", courseId: "java-core", title: "SOLID & Design Patterns Introduction", description: "SOLID architectural principles, Factory, and Singleton patterns.", order: 12, estimatedMinutes: 60, lessons: [], quiz: { id: "jq12", quizId: "quiz_solid-and-design-patterns", title: "SOLID & Design Patterns Final Quiz", passingScorePercent: 66, xpReward: 200, questions: [{ id: "jq12-1", question: "What does the 'S' in SOLID stand for?", options: ["Single Responsibility Principle", "Static Interface", "Stream Orientation", "Synchronous Loop"], correctIndex: 0, explanation: "A class should have one, and only one, reason to change." }] } },
     ],
   },
 
-  // ── 7. C & C++ SYSTEMS FOUNDATIONS ──
+  // ── 3. C & C++ SYSTEMS FOUNDATIONS (12 Modules) ──
   {
     id: "cpp-systems",
     courseId: "cpp-systems",
@@ -1290,202 +569,77 @@ public class Main {
     slug: "cpp-systems",
     language: "cpp",
     level: "Intermediate",
-    tagline: "Master low-level memory, pointers, manual resource management, and the STL.",
-    description: "Understand computer architecture, pointers, dynamic memory allocation, references, operator overloading, templates, and the C++ Standard Template Library.",
+    tagline: "Foundational systems engineering: memory layout, pointers, RAII, templates, STL, smart pointers, and concurrency.",
+    description: "Build robust high-performance systems. Master manual memory management, pointer mechanics, modern C++ idioms (C++11/14/17/20), move semantics, and thread concurrency.",
     icon: "⚙️",
-    bannerGradient: "from-blue-600/20 via-indigo-600/10 to-transparent",
-    estimatedHours: 7,
-    totalXp: 900,
+    bannerGradient: "from-blue-600/20 via-cyan-500/10 to-transparent",
+    estimatedHours: 18,
+    totalXp: 2000,
     whatYouWillLearn: [
-      "Memory layout: Stack vs Heap allocation",
-      "Pointers, dereferencing, and memory addresses",
-      "C++ STL: vector, unordered_map, set, and algorithms",
+      "Memory layout: stack, heap, and pointer arithmetic",
+      "Preprocessor macros, structs, padding, and binary file I/O",
+      "C++ RAII and deterministic resource management",
+      "Templates, generic programming, and STL containers",
+      "Smart pointers: unique_ptr, shared_ptr, and leak prevention",
+      "Move semantics, rvalue references (&&), and perfect forwarding",
+      "Modern C++20 features: concepts, ranges, and concurrency with std::thread",
     ],
     modules: [
-      {
-        id: "cpp-mod-1",
-        moduleId: "pointers-memory",
-        courseId: "cpp-systems",
-        title: "Pointers & Memory Architecture",
-        description: "Understand memory addresses (&), pointer variables (*), and the stack vs heap.",
-        order: 1,
-        estimatedMinutes: 45,
-        lessons: [
-          {
-            id: "cpp-les-1",
-            lessonId: "pointers-basics",
-            moduleId: "pointers-memory",
-            courseId: "cpp-systems",
-            title: "Pointers and Addresses",
-            summary: "Learn how variables are stored in memory and how pointers reference them.",
-            order: 1,
-            estimatedMinutes: 15,
-            concept: `### What is a Pointer?
+      { id: "cpp-mod-1", moduleId: "c-fundamentals", courseId: "cpp-systems", title: "C Fundamentals", description: "C compilation stages, data representations, control flow, and functions.", order: 1, estimatedMinutes: 45, lessons: [], quiz: { id: "cq1", quizId: "quiz_c-fundamentals", title: "C Fundamentals Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "cq1-1", question: "What is the entry point of every C/C++ program?", options: ["int main()", "void start()", "int init()", "void run()"], correctIndex: 0, explanation: "Execution begins in the main function." }] } },
+      { id: "cpp-mod-2", moduleId: "pointers-and-memory", courseId: "cpp-systems", title: "Pointers & Memory", description: "Address-of operator &, dereference *, pointer arithmetic, and malloc/free.", order: 2, estimatedMinutes: 60, lessons: [], quiz: { id: "cq2", quizId: "quiz_pointers-and-memory", title: "Pointers & Memory Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "cq2-1", question: "What operator retrieves the memory address of a variable?", options: ["&", "*", "->", "%"], correctIndex: 0, explanation: "& is the address-of operator." }] } },
+      { id: "cpp-mod-3", moduleId: "preprocessor-and-structs", courseId: "cpp-systems", title: "Preprocessor & Structs", description: "Macros, header guards, struct alignment, and memory padding.", order: 3, estimatedMinutes: 50, lessons: [], quiz: { id: "cq3", quizId: "quiz_preprocessor-and-structs", title: "Preprocessor & Structs Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "cq3-1", question: "Why does the compiler add padding inside structs?", options: ["To align fields with CPU word boundaries", "To increase file size", "To encrypt memory", "To prevent inheritance"], correctIndex: 0, explanation: "CPUs access memory faster when addresses are aligned." }] } },
+      { id: "cpp-mod-4", moduleId: "c-file-io", courseId: "cpp-systems", title: "C File I/O", description: "fopen, fread, fwrite, fseek, and binary byte manipulation.", order: 4, estimatedMinutes: 45, lessons: [], quiz: { id: "cq4", quizId: "quiz_c-file-io", title: "C File I/O Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "cq4-1", question: "Which function opens a file stream in C?", options: ["fopen", "open_file", "fstream", "file_open"], correctIndex: 0, explanation: "fopen opens streams." }] } },
+      { id: "cpp-mod-5", moduleId: "cpp-fundamentals", courseId: "cpp-systems", title: "C++ Fundamentals", description: "Namespaces, references vs pointers, const-correctness, and auto.", order: 5, estimatedMinutes: 50, lessons: [], quiz: { id: "cq5", quizId: "quiz_cpp-fundamentals", title: "C++ Fundamentals Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "cq5-1", question: "Can a C++ reference be reseated to refer to another object after initialization?", options: ["No, references cannot be reseated", "Yes, using =", "Yes, using ->", "Only if mutable"], correctIndex: 0, explanation: "References must be initialized on creation and cannot be changed." }] } },
+      { id: "cpp-mod-6", moduleId: "cpp-oop", courseId: "cpp-systems", title: "C++ OOP", description: "Constructors, destructors, rule of three/five/zero, and operator overloading.", order: 6, estimatedMinutes: 60, lessons: [], quiz: { id: "cq6", quizId: "quiz_cpp-oop", title: "C++ OOP Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "cq6-1", question: "When does a C++ destructor execute?", options: ["When the object goes out of scope", "Only when calling free()", "At garbage collection time", "Never"], correctIndex: 0, explanation: "Deterministic destructors run upon scope exit." }] } },
+      { id: "cpp-mod-7", moduleId: "raii-and-resource-management", courseId: "cpp-systems", title: "RAII & Resource Management", description: "Resource Acquisition Is Initialization and exception safety.", order: 7, estimatedMinutes: 55, lessons: [], quiz: { id: "cq7", quizId: "quiz_raii", title: "RAII Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "cq7-1", question: "What does RAII stand for?", options: ["Resource Acquisition Is Initialization", "Random Allocation In Inheritance", "Recursive Array Inline Iterator", "Read Access Internal Interface"], correctIndex: 0, explanation: "RAII binds resource lifetime to object scope." }] } },
+      { id: "cpp-mod-8", moduleId: "templates", courseId: "cpp-systems", title: "Templates", description: "Function templates, class templates, and template specialization.", order: 8, estimatedMinutes: 55, lessons: [], quiz: { id: "cq8", quizId: "quiz_templates", title: "Templates Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "cq8-1", question: "When are C++ templates instantiated?", options: ["At compile time", "At runtime", "At link time only", "By the OS loader"], correctIndex: 0, explanation: "The compiler generates specialized code during compilation." }] } },
+      { id: "cpp-mod-9", moduleId: "stl", courseId: "cpp-systems", title: "STL", description: "Standard Template Library: std::vector, std::map, iterators, and algorithms.", order: 9, estimatedMinutes: 60, lessons: [], quiz: { id: "cq9", quizId: "quiz_stl", title: "STL Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "cq9-1", question: "Which STL container provides dynamic contiguous array storage?", options: ["std::vector", "std::list", "std::set", "std::map"], correctIndex: 0, explanation: "std::vector stores elements contiguously." }] } },
+      { id: "cpp-mod-10", moduleId: "smart-pointers", courseId: "cpp-systems", title: "Smart Pointers", description: "std::unique_ptr, std::shared_ptr, and std::weak_ptr.", order: 10, estimatedMinutes: 60, lessons: [], quiz: { id: "cq10", quizId: "quiz_smart-pointers", title: "Smart Pointers Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "cq10-1", question: "Which smart pointer represents exclusive, non-copyable ownership?", options: ["std::unique_ptr", "std::shared_ptr", "std::weak_ptr", "std::auto_ptr"], correctIndex: 0, explanation: "unique_ptr owns a pointer exclusively." }] } },
+      { id: "cpp-mod-11", moduleId: "move-semantics", courseId: "cpp-systems", title: "Move Semantics", description: "Rvalue references (&&), std::move, and perfect forwarding.", order: 11, estimatedMinutes: 60, lessons: [], quiz: { id: "cq11", quizId: "quiz_move-semantics", title: "Move Semantics Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "cq11-1", question: "What does std::move actually do?", options: ["Casts an lvalue to an rvalue reference", "Physically copies bytes", "Frees memory", "Deletes the variable"], correctIndex: 0, explanation: "std::move is an unconditional cast to an rvalue reference." }] } },
+      { id: "cpp-mod-12", moduleId: "modern-cpp-and-concurrency", courseId: "cpp-systems", title: "Modern C++ & Concurrency", description: "C++20 concepts, ranges, std::thread, mutexes, and atomics.", order: 12, estimatedMinutes: 65, lessons: [], quiz: { id: "cq12", quizId: "quiz_modern-cpp-concurrency", title: "Modern C++ & Concurrency Final Quiz", passingScorePercent: 66, xpReward: 200, questions: [{ id: "cq12-1", question: "What C++20 feature constrains template arguments with compile-time predicates?", options: ["Concepts", "Coroutines", "Modules", "Lambdas"], correctIndex: 0, explanation: "Concepts enforce compile-time constraints on templates." }] } },
+    ],
+  },
 
-A pointer is a variable that stores the **memory address** of another variable.
-* \`&\` Address-of operator: retrieves the memory address of a variable.
-* \`*\` Dereference operator: accesses the value stored at a pointer's address.`,
-            conceptPoints: [
-              "Pointers allow direct memory access and efficient parameter passing.",
-              "Always initialize pointers to avoid undefined behavior.",
-            ],
-            example: {
-              title: "Pointer Dereferencing",
-              language: "cpp",
-              code: `#include <iostream>
-using namespace std;
-
-int main() {
-    int val = 42;
-    int* ptr = &val;
-    cout << "Value: " << *ptr << endl;
-    return 0;
-}`,
-              output: "Value: 42",
-              explanation: "*ptr dereferences the memory address to read the integer value 42.",
-            },
-            tryIt: {
-              instructions: "Write a C++ program that prints `Memory Master` to stdout.",
-              type: "code",
-              starterCode: `#include <iostream>
-using namespace std;
-
-int main() {
-    // Print your message:
-    return 0;
-}`,
-              solutionCode: `#include <iostream>
-using namespace std;
-
-int main() {
-    cout << "Memory Master" << endl;
-    return 0;
-}`,
-              expectedOutput: "Memory Master",
-              hint: "cout << \"Memory Master\" << endl;",
-            },
-          },
-        ],
-        practiceActivities: [],
-        quiz: {
-          id: "cpp-quiz-1",
-          quizId: "pointers-memory-quiz",
-          moduleId: "pointers-memory",
-          courseId: "cpp-systems",
-          title: "C++ Memory Checkpoint Quiz",
-          description: "Test your understanding of pointers, references, and memory.",
-          passingScorePercent: 70,
-          xpReward: 100,
-          questions: [
-            {
-              id: "cq1",
-              question: "Which operator is used to get the memory address of a variable in C/C++?",
-              options: ["*", "&", "->", "%"],
-              correctIndex: 1,
-              explanation: "The '&' ampersand operator extracts the memory address of a variable.",
-              conceptHint: "Address-of operator.",
-            },
-          ],
-        },
-      },
+  // ── 4. C LOW-LEVEL PROGRAMMING (12 Modules) ──
+  {
+    id: "c-low-level",
+    courseId: "c-low-level",
+    title: "C Low-Level Programming",
+    slug: "c-low-level",
+    language: "c",
+    level: "Advanced",
+    tagline: "Advanced systems engineering: bit manipulation, memory internals, POSIX syscalls, processes, pthreads, and bare-metal systems.",
+    description: "The definitive systems track. Master low-level memory layout, pointer aliasing, signals, multi-threaded POSIX systems, TCP socket servers, inline assembly, and defensive exploitation countermeasures.",
+    icon: "⚡",
+    bannerGradient: "from-indigo-600/20 via-purple-500/10 to-transparent",
+    estimatedHours: 20,
+    totalXp: 2400,
+    whatYouWillLearn: [
+      "Bit manipulation, masks, bitfields, and endianness",
+      "Virtual memory pages, segmentation, and mmap",
+      "Function pointers, callbacks, and generic dispatch with void*",
+      "POSIX system calls: fork, execve, waitpid, and signals",
+      "Lock-free atomics and pthreads concurrency",
+      "Raw TCP socket network programming",
+      "Embedded memory-mapped registers and volatile qualifiers",
+      "Buffer overflow defenses, ASLR, and systems capstone allocators",
+    ],
+    modules: [
+      { id: "clow-mod-1", moduleId: "bit-manipulation", courseId: "c-low-level", title: "Bit Manipulation", description: "Bitwise AND, OR, XOR, shifts, bitmasks, flags, and endianness.", order: 1, estimatedMinutes: 50, lessons: [], quiz: { id: "clq1", quizId: "quiz_bit-manipulation", title: "Bit Manipulation Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "clq1-1", question: "What is the result of (1 << 3) in decimal?", options: ["8", "6", "4", "16"], correctIndex: 0, explanation: "Shifting 1 left by 3 bits yields binary 1000 = decimal 8." }] } },
+      { id: "clow-mod-2", moduleId: "memory-model-internals", courseId: "c-low-level", title: "Memory Model Internals", description: "Virtual memory, segmentation (.text, .data, .bss, heap, stack), and mmap.", order: 2, estimatedMinutes: 60, lessons: [], quiz: { id: "clq2", quizId: "quiz_memory-model-internals", title: "Memory Model Internals Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "clq2-1", question: "Which segment stores uninitialized global and static variables?", options: [".bss", ".data", ".text", "stack"], correctIndex: 0, explanation: ".bss stores uninitialized static memory zeroed by the OS." }] } },
+      { id: "clow-mod-3", moduleId: "advanced-pointers", courseId: "c-low-level", title: "Advanced Pointers", description: "Function pointers, callbacks, void* dispatch, and restrict keyword.", order: 3, estimatedMinutes: 55, lessons: [], quiz: { id: "clq3", quizId: "quiz_advanced-pointers", title: "Advanced Pointers Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "clq3-1", question: "What does the C99 'restrict' pointer qualifier communicate to the compiler?", options: ["Pointers do not alias each other in memory", "Pointer is read-only", "Pointer is allocated on stack", "Pointer is thread-safe"], correctIndex: 0, explanation: "restrict informs the compiler that the pointer is the sole access path." }] } },
+      { id: "clow-mod-4", moduleId: "manual-data-structures", courseId: "c-low-level", title: "Manual Data Structures", description: "Intrusive linked lists, custom ring buffers, and memory pools.", order: 4, estimatedMinutes: 60, lessons: [], quiz: { id: "clq4", quizId: "quiz_manual-data-structures", title: "Manual Data Structures Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "clq4-1", question: "Why are memory pools used in low-latency systems?", options: ["To eliminate allocation fragmentation and ensure deterministic O(1) allocs", "To compress data", "To bypass CPU caches", "To enable garbage collection"], correctIndex: 0, explanation: "Memory pools pre-allocate blocks for deterministic allocation time." }] } },
+      { id: "clow-mod-5", moduleId: "posix-system-calls", courseId: "c-low-level", title: "POSIX System Calls", description: "open, read, write, close, lseek, ioctl, and errno.", order: 5, estimatedMinutes: 55, lessons: [], quiz: { id: "clq5", quizId: "quiz_posix-system-calls", title: "POSIX System Calls Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "clq5-1", question: "What return value indicates a POSIX system call error?", options: ["-1 (with errno set)", "0", "1", "NULL"], correctIndex: 0, explanation: "POSIX syscalls return -1 and populate errno." }] } },
+      { id: "clow-mod-6", moduleId: "processes-and-signals", courseId: "c-low-level", title: "Processes & Signals", description: "Process creation with fork, execve, waitpid, IPC pipes, and sigaction.", order: 6, estimatedMinutes: 65, lessons: [], quiz: { id: "clq6", quizId: "quiz_processes-and-signals", title: "Processes & Signals Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "clq6-1", question: "What does fork() return in the child process?", options: ["0", "Child PID", "-1", "Parent PID"], correctIndex: 0, explanation: "fork() returns 0 to the child process and the child's PID to the parent." }] } },
+      { id: "clow-mod-7", moduleId: "pthreads-and-atomics", courseId: "c-low-level", title: "Pthreads & Atomics", description: "POSIX threads, mutexes, condition variables, and lock-free C11 atomics.", order: 7, estimatedMinutes: 65, lessons: [], quiz: { id: "clq7", quizId: "quiz_pthreads-and-atomics", title: "Pthreads & Atomics Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "clq7-1", question: "Which structure synchronizes threads waiting on state changes in pthreads?", options: ["pthread_cond_t", "pthread_mutex_t", "pthread_rwlock_t", "pthread_barrier_t"], correctIndex: 0, explanation: "Condition variables allow threads to sleep until signaled." }] } },
+      { id: "clow-mod-8", moduleId: "socket-programming", courseId: "c-low-level", title: "Socket Programming", description: "TCP/UDP sockets, bind, listen, accept, poll/epoll, and network byte order.", order: 8, estimatedMinutes: 65, lessons: [], quiz: { id: "clq8", quizId: "quiz_socket-programming", title: "Socket Programming Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "clq8-1", question: "Which function converts a 16-bit integer from host to network byte order?", options: ["htons()", "htonl()", "ntohs()", "inet_addr()"], correctIndex: 0, explanation: "htons converts 16-bit integers to big-endian network byte order." }] } },
+      { id: "clow-mod-9", moduleId: "embedded-bare-metal-c", courseId: "c-low-level", title: "Embedded / Bare-Metal C", description: "Memory-mapped I/O, volatile qualifier, linker scripts, and hardware registers.", order: 9, estimatedMinutes: 60, lessons: [], quiz: { id: "clq9", quizId: "quiz_embedded-bare-metal", title: "Embedded & Bare Metal Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "clq9-1", question: "Why is the volatile qualifier used on hardware register pointers?", options: ["To prevent compiler optimization from caching memory reads in registers", "To make the variable constant", "To lock the variable in thread mutex", "To save memory"], correctIndex: 0, explanation: "volatile forces the compiler to re-read memory on every access." }] } },
+      { id: "clow-mod-10", moduleId: "security-and-memory-exploitation", courseId: "c-low-level", title: "Security & Memory Exploitation Concepts", description: "Buffer overflows, stack smashing, return-to-libc, ASLR, and sanitizers.", order: 10, estimatedMinutes: 60, lessons: [], quiz: { id: "clq10", quizId: "quiz_security-exploitation", title: "Security & Exploitation Defense Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "clq10-1", question: "What defense randomizes stack and heap memory positions on executable start?", options: ["ASLR (Address Space Layout Randomization)", "DEP / NX", "Stack Canary", "RELRO"], correctIndex: 0, explanation: "ASLR randomizes address space layout." }] } },
+      { id: "clow-mod-11", moduleId: "performance-optimization", courseId: "c-low-level", title: "Performance Optimization", description: "CPU cache line alignment, branch prediction hints, and SIMD vectorization.", order: 11, estimatedMinutes: 60, lessons: [], quiz: { id: "clq11", quizId: "quiz_performance-optimization", title: "Performance Optimization Quiz", passingScorePercent: 66, xpReward: 100, questions: [{ id: "clq11-1", question: "What is the typical modern x86 CPU cache line size?", options: ["64 bytes", "16 bytes", "256 bytes", "4 KB"], correctIndex: 0, explanation: "Modern x86 CPUs load 64 bytes per cache line." }] } },
+      { id: "clow-mod-12", moduleId: "systems-capstone-projects", courseId: "c-low-level", title: "Systems Capstone Projects", description: "Building an asynchronous HTTP server, custom shell, and malloc implementation.", order: 12, estimatedMinutes: 90, lessons: [], quiz: { id: "clq12", quizId: "quiz_systems-capstones", title: "Systems Capstone Final Quiz", passingScorePercent: 66, xpReward: 300, questions: [{ id: "clq12-1", question: "Which system call adjusts the program break to allocate heap memory?", options: ["sbrk / brk", "malloc", "calloc", "valloc"], correctIndex: 0, explanation: "sbrk and brk move the program data segment break." }] } },
     ],
   },
 ];
-
-// Additional language course stubs for C, C#, PHP, Swift, Ruby, CSS
-const ADDITIONAL_LANGUAGES: Array<{ language: SupportedLanguage; title: string; tagline: string; icon: string }> = [
-  { language: "c", title: "C Low-Level Programming", tagline: "Write high-performance low-level system code in pure C.", icon: "🔧" },
-  { language: "csharp", title: "C# & .NET Modern Dev", tagline: "Build enterprise, cloud, and cross-platform apps with modern C#.", icon: "🎯" },
-  { language: "php", title: "Modern PHP 8+ & Web", tagline: "Build scalable web backends with modern typed PHP.", icon: "🐘" },
-  { language: "swift", title: "Swift & iOS Development", tagline: "Create modern iOS and macOS apps with Swift and SwiftUI.", icon: "🦅" },
-  { language: "ruby", title: "Ruby & Elegant Scripting", tagline: "Developer happiness, expressive syntax, and web mastery with Ruby.", icon: "💎" },
-  { language: "css", title: "CSS3 Mastery & Animations", tagline: "Modern layouts, Flexbox, Grid, container queries, and micro-interactions.", icon: "🎨" },
-];
-
-for (const extra of ADDITIONAL_LANGUAGES) {
-  COURSES.push({
-    id: `${extra.language}-essentials`,
-    courseId: `${extra.language}-essentials`,
-    title: extra.title,
-    slug: `${extra.language}-essentials`,
-    language: extra.language,
-    level: "Beginner",
-    tagline: extra.tagline,
-    description: `A structured learning journey to master ${extra.title}. Learn syntax, best practices, idiomatic patterns, and hands-on coding.`,
-    icon: extra.icon,
-    bannerGradient: "from-cyan-500/20 via-slate-700/10 to-transparent",
-    estimatedHours: 5,
-    totalXp: 700,
-    whatYouWillLearn: [
-      `Core ${extra.title} syntax and conventions`,
-      "Practical problem-solving patterns",
-      "Interactive code exercises and module checkpoint quizzes",
-    ],
-    modules: [
-      {
-        id: `${extra.language}-mod-1`,
-        moduleId: `${extra.language}-basics`,
-        courseId: `${extra.language}-essentials`,
-        title: `${extra.title} Foundations`,
-        description: `Essential syntax, variables, and control structures for ${extra.title}.`,
-        order: 1,
-        estimatedMinutes: 40,
-        lessons: [
-          {
-            id: `${extra.language}-les-1`,
-            lessonId: `${extra.language}-intro`,
-            moduleId: `${extra.language}-basics`,
-            courseId: `${extra.language}-essentials`,
-            title: `Introduction to ${extra.title}`,
-            summary: `Understand language philosophy and write your first program.`,
-            order: 1,
-            estimatedMinutes: 15,
-            concept: `### Getting Started with ${extra.title}
-
-Learn the core primitives, syntax rules, and tooling of ${extra.title}.`,
-            conceptPoints: ["Clean syntax and idiomatic style.", "Execution lifecycle and standard library."],
-            example: {
-              title: `First ${extra.title} program`,
-              language: extra.language,
-              code: `// Welcome to ${extra.title}`,
-              output: `Ready to learn ${extra.title}`,
-              explanation: "Basic template setup.",
-            },
-            tryIt: {
-              instructions: `Run your first ${extra.title} exercise.`,
-              type: "code",
-              starterCode: `// Start coding here\n`,
-              solutionCode: `// Solved\n`,
-              expectedOutput: "",
-              hint: "Check the syntax instructions.",
-            },
-          },
-        ],
-        practiceActivities: [],
-        quiz: {
-          id: `${extra.language}-quiz-1`,
-          quizId: `${extra.language}-basics-quiz`,
-          moduleId: `${extra.language}-basics`,
-          courseId: `${extra.language}-essentials`,
-          title: `${extra.title} Checkpoint Quiz`,
-          description: "Pass to complete the module and earn XP.",
-          passingScorePercent: 70,
-          xpReward: 100,
-          questions: [
-            {
-              id: "eq1",
-              question: `What is the primary strength of ${extra.title}?`,
-              options: ["Modern developer ergonomics", "Interpreted legacy only", "No type checking", "Deprecated"],
-              correctIndex: 0,
-              explanation: "Built for modern engineering productivity.",
-              conceptHint: "Ergonomics and versatility.",
-            },
-          ],
-        },
-      },
-    ],
-  });
-}
 
 export function getAllCourses(): ICourse[] {
   return COURSES;

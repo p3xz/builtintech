@@ -3,6 +3,7 @@ import { Question } from "@/models/Question";
 import { Submission } from "@/models/Submission";
 import { executeCodeOnlineCompilerSyncWithLang } from "@/lib/onlinecompiler";
 import { calculateStreak } from "@/lib/streak";
+import { getProblemForJudging } from "@/lib/problems";
 
 export interface SubmissionEvaluationResult {
   submissionId: string;
@@ -30,7 +31,7 @@ export async function evaluateAndRecordSubmission(
   language: string,
   code: string
 ): Promise<SubmissionEvaluationResult> {
-  const question = await Question.findOne({ problemId, isPublished: true });
+  const question = await getProblemForJudging(problemId);
   if (!question) {
     throw new Error("Problem not found or unpublished.");
   }
