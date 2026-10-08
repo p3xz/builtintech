@@ -1,11 +1,11 @@
 import React from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, Shield, Lock, Eye, Scale, Database, UserCheck, AlertTriangle, Mail, ShieldAlert, Cpu } from "lucide-react";
+import { ArrowLeft, Shield, Lock, Eye, Database, Cpu, UserX, FileText } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | ClashJudge",
-  description: "Review how ClashJudge handles developer telemetry, sandboxed code execution privacy, AI referee analysis, and data protection.",
+  title: "Privacy Policy | Built In Tech",
+  description: "Privacy Policy explaining how Built In Tech / CodeForge collects, uses, and protects your information, telemetry, and code submissions.",
 };
 
 export default function PrivacyPage() {
@@ -26,149 +26,193 @@ export default function PrivacyPage() {
               <Shield className="h-4 w-4" />
             </div>
             <h1 className="text-3xl font-bold font-mono tracking-tight text-white">
-              Clash<span className="text-cyan-400">Judge</span> Privacy Policy
+              Privacy Policy
             </h1>
           </div>
-          <p className="text-xs font-mono text-zinc-500">
-            Last Updated &amp; Effective Date: October 2026 &bull; Version 1.2
+          <p className="text-xs font-mono text-zinc-400">
+            Last Updated: October 8, 2026 &bull; KJU Hacktoberfest Hack Day 2026
           </p>
         </div>
 
         <div className="space-y-8 text-xs leading-relaxed font-sans text-zinc-300">
-          {/* Introduction */}
-          <section className="space-y-3">
+          {/* Intro */}
+          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-2xl">
             <p className="text-sm font-medium text-white leading-normal">
-              Welcome to <strong>ClashJudge</strong>. We value your privacy, operate with full transparency, and adhere to strict data minimization principles.
+              Privacy at Built In Tech / CodeForge
             </p>
             <p className="text-zinc-400">
-              This Privacy Policy explains how ClashJudge (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects, uses, processes, and protects your information when you access our coding platform, execute code in our sandboxes, compete in 1v1 live duels, and interact with our automated AI referee systems.
+              This Privacy Policy explains how CodeForge collects, uses, and discloses information about you when you use our Service.
             </p>
           </section>
 
           {/* 1. Information We Collect */}
-          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-xl">
+          <section className="space-y-4 p-6 bg-[#121214] border border-zinc-800 rounded-2xl">
             <div className="flex items-center gap-2 text-sm font-bold font-mono text-white">
               <Database className="h-4 w-4 text-cyan-400" />
               <h2>1. Information We Collect</h2>
             </div>
             <p className="text-zinc-400">
-              We collect only the minimum data necessary to operate our competitive coding platform and referee matches:
+              We collect information you provide directly to us, as well as data automatically generated through your use of the Service:
             </p>
-            <ul className="list-disc pl-5 space-y-2 text-zinc-300">
-              <li>
-                <strong className="text-white">Authentication Data:</strong> We operate a password-free platform. When you sign in via Google OAuth or Email OTP (One-Time Passcode), we store your verified email address, chosen username, display name, and avatar. No passwords are ever stored.
-              </li>
-              <li>
-                <strong className="text-white">Code Submissions &amp; Practice Metrics:</strong> We record your source code submissions, selected programming language (Python 3.14, JavaScript Deno, C++ g++-15, Java OpenJDK 25, C gcc-15), wall-clock execution runtime, test pass counts, and solved problem statuses.
-              </li>
-              <li>
-                <strong className="text-white">1v1 Duel &amp; Competitive Telemetry:</strong> In 1v1 duels, we record match histories, room codes, timestamps, test completion percentages, win/loss/draw records, and Elo rating updates.
-              </li>
-              <li>
-                <strong className="text-white">AI Referee Insights:</strong> When refereeing a completed duel, our AI analysis pipeline parses your submitted code to evaluate readability scores, code cleanliness, and constructive coaching feedback.
-              </li>
-              <li>
-                <strong className="text-white">Security &amp; Rate-Limiting Telemetry:</strong> Safe request metadata including IP addresses, browser user-agents, and request timestamps are processed solely for sliding-window rate limiting, DDoS protection, and abuse prevention.
-              </li>
-            </ul>
+
+            <div className="space-y-3">
+              <div>
+                <h3 className="font-mono text-xs font-bold text-white uppercase tracking-wider mb-1">
+                  1.1. Account Identity Data:
+                </h3>
+                <ul className="list-disc pl-5 space-y-1 text-zinc-300">
+                  <li>Username, email address, and hashed credentials.</li>
+                  <li>OAuth tokens if you register via third-party services (e.g., Google).</li>
+                  <li>Profile information (e.g., avatar, bio).</li>
+                </ul>
+              </div>
+
+              <div className="pt-2 border-t border-zinc-800/80">
+                <h3 className="font-mono text-xs font-bold text-white uppercase tracking-wider mb-1">
+                  1.2. Telemetry and Usage Data:
+                </h3>
+                <ul className="list-disc pl-5 space-y-1 text-zinc-300">
+                  <li>Quiz scores, lesson progression, and completion status.</li>
+                  <li>Duel win/loss records, Elo ratings, and match history.</li>
+                  <li>Typing speed and interaction metrics within the coding editor.</li>
+                  <li>Preferences and settings within the platform.</li>
+                </ul>
+              </div>
+
+              <div className="pt-2 border-t border-zinc-800/80">
+                <h3 className="font-mono text-xs font-bold text-white uppercase tracking-wider mb-1">
+                  1.3. Code Submissions:
+                </h3>
+                <ul className="list-disc pl-5 space-y-1 text-zinc-300">
+                  <li>The raw code snippets you write during lessons, quizzes, and live 1v1 duels.</li>
+                  <li>The programming language selected.</li>
+                </ul>
+              </div>
+
+              <div className="pt-2 border-t border-zinc-800/80">
+                <h3 className="font-mono text-xs font-bold text-white uppercase tracking-wider mb-1">
+                  1.4. Technical and Device Information:
+                </h3>
+                <ul className="list-disc pl-5 space-y-1 text-zinc-300">
+                  <li>IP addresses, browser type, operating system.</li>
+                  <li>Log data regarding your interaction with our servers and the execution Sandboxes.</li>
+                  <li>Device identifiers necessary for security and abuse prevention.</li>
+                </ul>
+              </div>
+            </div>
           </section>
 
-          {/* 2. How We Use Information */}
-          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-xl">
+          {/* 2. How We Use Your Information */}
+          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-2xl">
             <div className="flex items-center gap-2 text-sm font-bold font-mono text-white">
               <Eye className="h-4 w-4 text-cyan-400" />
               <h2>2. How We Use Your Information</h2>
             </div>
-            <p className="text-zinc-400">We process your data strictly under legitimate legal bases:</p>
+            <p className="text-zinc-400">We use the collected information for the following primary purposes:</p>
             <ul className="list-disc pl-5 space-y-1.5 text-zinc-300">
-              <li>To evaluate code against server-side hidden test suites and determine problem accuracy.</li>
-              <li>To referee 1v1 coding showdowns, determine match winners, and calculate Elo rating changes.</li>
-              <li>To generate automated AI coaching reports, code readability metrics, and ringside commentaries.</li>
-              <li>To maintain global rankings, developer profiles, daily practice streaks, and Experience Points (XP).</li>
-              <li>To protect platform integrity against automated bots, scraping scripts, and sandbox escape attempts.</li>
-            </ul>
-            <p className="text-[11px] font-mono text-emerald-400 pt-2 border-t border-zinc-800/80">
-              ✓ We never sell, rent, monetize, or share your personal data with third-party advertisers or data brokers.
-            </p>
-          </section>
-
-          {/* 3. Code Execution & Sandboxing Privacy */}
-          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-xl">
-            <div className="flex items-center gap-2 text-sm font-bold font-mono text-white">
-              <Lock className="h-4 w-4 text-cyan-400" />
-              <h2>3. Code Execution &amp; Sandboxing Privacy</h2>
-            </div>
-            <p className="text-zinc-400">
-              When you run or submit code, your source code is evaluated in isolated, ephemeral sandboxes:
-            </p>
-            <ul className="list-disc pl-5 space-y-1.5 text-zinc-300">
-              <li>Subprocess execution runs with non-root privileges inside secured containers.</li>
-              <li>Outbound network connectivity is restricted to prevent external communications or data exfiltration.</li>
-              <li>Strict execution timeouts (35s maximum client-side, 3-5s per test case) terminate infinite loops.</li>
-              <li>Source files are processed in ephemeral containers and wiped after execution.</li>
+              <li>
+                <strong className="text-white">To Provide and Maintain the Service:</strong> Creating and managing accounts, facilitating authentication, and delivering the core educational and competitive features.
+              </li>
+              <li>
+                <strong className="text-white">To Evaluate Submissions (The AI Referee):</strong> Processing your code submissions through our AI models to determine correctness and generate feedback.
+              </li>
+              <li>
+                <strong className="text-white">Gamification and Matchmaking:</strong> Calculating Elo ratings, updating leaderboards, and pairing you with appropriate opponents for live duels.
+              </li>
+              <li>
+                <strong className="text-white">Security and Platform Integrity:</strong> Monitoring for sandbox abuse, DDoS attacks, cheating, and enforcing our Acceptable Use Policy.
+              </li>
+              <li>
+                <strong className="text-white">Platform Improvement:</strong> Analyzing usage trends and anonymized code data to improve lesson quality, matchmaking algorithms, and platform stability.
+              </li>
+              <li>
+                <strong className="text-white">Communication:</strong> Sending essential service updates, account notifications, or responding to support inquiries.
+              </li>
             </ul>
           </section>
 
-          {/* 4. AI Referee & Third-Party Services */}
-          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-xl">
+          {/* 3. Third-Party AI Data Processing */}
+          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-2xl">
             <div className="flex items-center gap-2 text-sm font-bold font-mono text-white">
               <Cpu className="h-4 w-4 text-cyan-400" />
-              <h2>4. AI Referee &amp; Third-Party Services</h2>
+              <h2>3. Third-Party AI Data Processing</h2>
             </div>
-            <p className="text-zinc-400">We partner with secure, privacy-conscious infrastructure providers:</p>
-            <ul className="list-disc pl-5 space-y-1.5 text-zinc-300">
+            <p className="text-zinc-400">
+              CodeForge's core feature—the AI Referee—relies on third-party artificial intelligence providers (such as Groq, OpenAI, Anthropic, or Google) to evaluate your code.
+            </p>
+            <ul className="list-disc pl-5 space-y-2 text-zinc-300">
               <li>
-                <strong className="text-white">OnlineCompiler API:</strong> High-performance isolated compilation sandbox for multi-language execution.
+                <strong className="text-white">API Transmission:</strong> When you submit code for evaluation (especially during duels), your raw code text, the chosen programming language, and the specific problem constraints are transmitted securely via API to our AI partners.
               </li>
               <li>
-                <strong className="text-white">Groq AI Inference API:</strong> Secure, fast LLM inference (`openai/gpt-oss-20b`) for evaluating code readability and generating ringside coaching commentary. Zero customer code is used for training foundation models.
-              </li>
-              <li>
-                <strong className="text-white">MongoDB:</strong> Database storage for user accounts, problem suites, and match logs with encrypted data at rest (AES-256).
-              </li>
-              <li>
-                <strong className="text-white">Google OAuth:</strong> Decentralized OAuth authentication protocol.
+                <strong className="text-white">Data Training Restrictions:</strong> We prioritize your privacy. CodeForge utilizes enterprise-tier APIs for our AI Referee. Under our agreements with these providers, your submitted code and platform username are <strong>NOT</strong> used by these third parties to train, retrain, or improve their foundational AI models. Your code is processed solely to generate the verdict for your specific match.
               </li>
             </ul>
           </section>
 
-          {/* 5. GDPR & CCPA Data Rights */}
-          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-xl">
-            <div className="flex items-center gap-2 text-sm font-bold font-mono text-white">
-              <UserCheck className="h-4 w-4 text-cyan-400" />
-              <h2>5. Your Data Rights (GDPR &amp; CCPA)</h2>
-            </div>
-            <p className="text-zinc-400">Regardless of your location, you have the following rights:</p>
+          {/* 4. Data Sharing and Disclosure */}
+          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-2xl">
+            <h2 className="text-sm font-bold font-mono text-white">4. Data Sharing and Disclosure</h2>
+            <p className="text-zinc-400">We do not sell your personal data. We may share your information only in the following circumstances:</p>
             <ul className="list-disc pl-5 space-y-1.5 text-zinc-300">
-              <li><strong>Right of Access &amp; Portability:</strong> Request a complete copy of your submissions and account data.</li>
-              <li><strong>Right to Rectification:</strong> Update your profile name, display information, and preferences at any time.</li>
-              <li><strong>Right to Erasure:</strong> Request permanent account deletion, wiping all personal records from our database.</li>
-              <li><strong>Non-Discrimination:</strong> You will never receive degraded service or penalty for exercising your privacy rights.</li>
+              <li>
+                <strong className="text-white">Public Display:</strong> Your username, profile picture, public Elo rating, duel history, and code submitted during public matches may be visible to other users on the platform (e.g., via leaderboards or replays).
+              </li>
+              <li>
+                <strong className="text-white">Service Providers:</strong> We may share data with trusted third-party vendors (e.g., cloud hosting providers like AWS/GCP, database services) who assist us in operating the platform, subject to strict confidentiality agreements.
+              </li>
+              <li>
+                <strong className="text-white">Legal Compliance:</strong> We may disclose your information if required to do so by law or in response to valid requests by public authorities (e.g., a court or a government agency).
+              </li>
             </ul>
           </section>
 
-          {/* 6. Children's Privacy */}
-          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-xl">
-            <div className="flex items-center gap-2 text-sm font-bold font-mono text-amber-400">
-              <AlertTriangle className="h-4 w-4 text-amber-400" />
-              <h2>6. Children&apos;s Privacy (COPPA)</h2>
+          {/* 5. Children's Privacy */}
+          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-2xl">
+            <h2 className="text-sm font-bold font-mono text-white">5. Children&apos;s Privacy (COPPA &amp; GDPR-K Compliance)</h2>
+            <p className="text-zinc-400">CodeForge is an educational platform, but it is not intended for young children.</p>
+            <ul className="list-disc pl-5 space-y-1.5 text-zinc-300">
+              <li>
+                <strong className="text-white">Age Restriction:</strong> Our Service is intended only for individuals aged 13 or older (in the US) or 16 or older (in the EU). We do not knowingly collect personal information from children under these required ages.
+              </li>
+              <li>
+                <strong className="text-white">Data Deletion:</strong> If we become aware that we have inadvertently collected personal data from a child under the minimum required age without verifiable parental consent, we will take immediate steps to delete that information from our servers. If you are a parent or guardian and believe your child has provided us with personal information, please contact us.
+              </li>
+            </ul>
+          </section>
+
+          {/* 6. Data Retention and Deletion */}
+          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-2xl">
+            <div className="flex items-center gap-2 text-sm font-bold font-mono text-white">
+              <UserX className="h-4 w-4 text-cyan-400" />
+              <h2>6. Data Retention and Deletion</h2>
             </div>
             <p className="text-zinc-400">
-              ClashJudge is intended for developers, students, and competitive programmers aged <strong>13 and older</strong>. We do not knowingly collect personal information from children under 13.
+              We retain your personal information only for as long as is necessary for the purposes set out in this Privacy Policy.
+            </p>
+            <p className="text-zinc-300">
+              <strong className="text-white">Account Deletion Protocol:</strong> You have the right to request the deletion of your account. Upon receiving a verified deletion request, we will:
+            </p>
+            <ul className="list-disc pl-5 space-y-1 text-zinc-300">
+              <li>Wipe your identifiable data (email, credentials, linked OAuth tokens).</li>
+              <li>Zero out your Elo rating.</li>
+              <li>Anonymize your past code submissions and match history. (Note: We must retain the anonymized code and outcomes to preserve the replay history and integrity of the records for the opponents you have faced).</li>
+            </ul>
+          </section>
+
+          {/* 7. Changes to these Policies */}
+          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-2xl">
+            <h2 className="text-sm font-bold font-mono text-white">7. Changes to these Policies</h2>
+            <p className="text-zinc-400">
+              We reserve the right to update or modify these Terms of Service and Privacy Policy at any time. If we make material changes, we will notify you by updating the &quot;Last Updated&quot; date at the top of this document or by providing notice through the Service. Your continued use of the Service following the posting of changes constitutes your acceptance of those changes.
             </p>
           </section>
 
-          {/* 7. Contact */}
-          <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-xl">
-            <div className="flex items-center gap-2 text-sm font-bold font-mono text-white">
-              <Mail className="h-4 w-4 text-cyan-400" />
-              <h2>7. Contact &amp; Inquiries</h2>
-            </div>
-            <p className="text-zinc-400">
-              For any questions or privacy inquiries, contact the ClashJudge team:
-            </p>
-            <p className="font-mono text-xs text-cyan-400">
-              Email: <a href="mailto:support@clashjudge.io" className="underline hover:text-cyan-300">support@clashjudge.io</a>
+          {/* 8. Contact Information */}
+          <section className="p-6 bg-[#121214] border border-zinc-800 rounded-2xl text-zinc-400">
+            <h2 className="text-sm font-bold font-mono text-white mb-2">8. Contact Information</h2>
+            <p>
+              If you have any questions about these Terms or this Privacy Policy, please contact the Built In Tech development team (KJU Hacktoberfest Hack Day 2026).
             </p>
           </section>
         </div>
