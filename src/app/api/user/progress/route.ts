@@ -52,7 +52,13 @@ export async function GET() {
       }
     }
 
-    const dbUser = await User.findById(session.user.id);
+    let dbUser = null;
+    try {
+      dbUser = await User.findById(session.user.id);
+    } catch {
+      // session.user.id may be the OAuth provider ID, not a Mongo ObjectId
+      dbUser = await User.findOne({ $or: [{ providerAccountId: session.user.id }, { email: session.user.email }] });
+    }
 
     return NextResponse.json({
       success: true,
