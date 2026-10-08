@@ -79,8 +79,8 @@ export default function DuelRoomPage() {
 
         // Initialize my code from room if empty
         if (!myCodeRef.current && playerName) {
-          const isP1 = data.player1.name.toLowerCase() === playerName.toLowerCase();
-          const isP2 = data.player2?.name.toLowerCase() === playerName.toLowerCase();
+          const isP1 = data.player1?.name?.toLowerCase() === playerName.toLowerCase();
+          const isP2 = data.player2?.name?.toLowerCase() === playerName.toLowerCase();
           if (isP1 && data.player1.code) {
             setMyCode(data.player1.code);
           } else if (isP2 && data.player2?.code) {
@@ -193,8 +193,8 @@ export default function DuelRoomPage() {
   };
 
   // Determine roles
-  const isPlayer1 = room?.player1.name.toLowerCase() === playerName.toLowerCase();
-  const isPlayer2 = room?.player2?.name.toLowerCase() === playerName.toLowerCase();
+  const isPlayer1 = room?.player1?.name?.toLowerCase() === playerName.toLowerCase();
+  const isPlayer2 = room?.player2?.name?.toLowerCase() === playerName.toLowerCase();
   const myPlayerState = isPlayer1 ? room?.player1 : isPlayer2 ? room?.player2 : null;
   const opponentState = isPlayer1 ? room?.player2 : isPlayer2 ? room?.player1 : null;
 
@@ -418,20 +418,20 @@ export default function DuelRoomPage() {
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-[#22d3ee]" />
                     <span className="font-mono text-xs font-bold text-[#22d3ee]">
-                      {room.player1.name}{" "}
-                      {room.player1.name.toLowerCase() === playerName.toLowerCase() ? "(You)" : ""}
+                      {room.player1?.name || "Player 1"}{" "}
+                      {room.player1?.name?.toLowerCase() === playerName.toLowerCase() ? "(You)" : ""}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {getStatusBadge(room.player1.status)}
+                    {getStatusBadge(room.player1?.status)}
                     <span className="text-[11px] font-mono text-zinc-400">
-                      {room.player1.testsPassed}/{room.player1.totalTests} tests
+                      {room.player1 ? `${room.player1.testsPassed}/${room.player1.totalTests}` : "0/0"} tests
                     </span>
                   </div>
                 </div>
 
                 <div className="flex-1 min-h-0">
-                  {room.player1.name.toLowerCase() === playerName.toLowerCase() ? (
+                  {room.player1?.name?.toLowerCase() === playerName.toLowerCase() ? (
                     <Editor
                       height="100%"
                       defaultLanguage="python"
@@ -486,7 +486,7 @@ export default function DuelRoomPage() {
                     <span className="w-2 h-2 rounded-full bg-[#fb7185]" />
                     <span className="font-mono text-xs font-bold text-[#fb7185]">
                       {room.player2?.name || "Player 2"}{" "}
-                      {room.player2?.name.toLowerCase() === playerName.toLowerCase() ? "(You)" : ""}
+                      {room.player2?.name?.toLowerCase() === playerName.toLowerCase() ? "(You)" : ""}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -498,7 +498,7 @@ export default function DuelRoomPage() {
                 </div>
 
                 <div className="flex-1 min-h-0">
-                  {room.player2?.name.toLowerCase() === playerName.toLowerCase() ? (
+                  {room.player2?.name?.toLowerCase() === playerName.toLowerCase() ? (
                     <Editor
                       height="100%"
                       defaultLanguage="python"
