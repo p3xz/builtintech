@@ -49,3 +49,6 @@ next-env.d.ts
 # legacy / sub-project folder
 wheatcode/
 
+
+.vercel
+.env*

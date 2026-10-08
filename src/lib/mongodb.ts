@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 import { MongoClient, Db } from "mongodb";
+import dns from "dns";
+
+// Ensure reliable DNS resolution for MongoDB Atlas SRV connection strings
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
+} catch {
+  // Ignore in environments where setServers is restricted
+}
 
 /**
  * Single-database architecture: everything lives in the `insidcode` database.

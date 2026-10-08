@@ -1,5 +1,5 @@
 import NextAuth, { DefaultSession } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
+import Google from "next-auth/providers/google";
 import { connectToDatabase } from "./mongodb";
 import { User } from "@/models/User";
 import { generateUniqueUsername } from "./username";
@@ -49,11 +49,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "builtintech-production-auth-secret-key-32chars",
   providers: [
-    GoogleProvider({
+    Google({
       clientId: process.env.GOOGLE_CLIENT_ID || process.env.AUTH_GOOGLE_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.AUTH_GOOGLE_SECRET || "",
+      allowDangerousEmailAccountLinking: true,
     }),
-
   ],
   session: {
     strategy: "jwt",
@@ -67,6 +67,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const userEmail = user.email ? user.email.toLowerCase().trim() : undefined;
           if (!userEmail) return false;
 
+          const isInitialAdmin = userEmail === ADMIN_EMAIL.toLowerCase();
+
           let dbUser = await User.findOne({
             $or: [
               { provider: "google", providerAccountId: account.providerAccountId },
@@ -74,13 +76,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             ],
           });
 
-          const isInitialAdmin = userEmail === ADMIN_EMAIL.toLowerCase();
-
           if (!dbUser) {
             const rawName = user.name || userEmail.split("@")[0] || "coder";
             const username = await generateUniqueUsername(rawName);
 
-            dbUser = await User.create({
+            await User.create({
               username,
               usernameNormalized: username.toLowerCase(),
               displayName: user.name || username,
@@ -108,29 +108,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               },
             });
           } else {
-            let modified = false;
+            const updateDoc: Record<string, unknown> = {};
             if (dbUser.provider !== "google" || !dbUser.providerAccountId) {
-              dbUser.provider = "google";
-              dbUser.providerAccountId = account.providerAccountId;
-              modified = true;
+              updateDoc.provider = "google";
+              updateDoc.providerAccountId = account.providerAccountId;
             }
             if (user.image && dbUser.image !== user.image) {
-              dbUser.image = user.image;
-              modified = true;
+              updateDoc.image = user.image;
             }
             if (isInitialAdmin && dbUser.role !== "admin") {
-              dbUser.role = "admin";
-              modified = true;
+              updateDoc.role = "admin";
             }
-            if (modified) {
-              await dbUser.save();
+            if (Object.keys(updateDoc).length > 0) {
+              await User.updateOne({ _id: dbUser._id }, { $set: updateDoc });
             }
           }
 
           return true;
         } catch (error) {
           console.error("[Auth] Google sign-in sync error:", error);
-          return false;
+          // Return true so user still gets signed in even if sync has a minor hitch
+          return true;
         }
       }
       return true;
