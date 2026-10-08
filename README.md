@@ -10,9 +10,9 @@
     <a href="#license">License</a>
   </p>
 
-  <img src="https://img.shields.io/badge/Next.js-15.5-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Next.js-16.3-black?style=for-the-badge&logo=next.js" alt="Next.js" />
   <img src="https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/Groq_AI-Referee-purple?style=for-the-badge&logo=openai" alt="Groq AI" />
 </div>
 
@@ -46,22 +46,30 @@ Supported languages: Python, HTML, CSS, JavaScript, SQL, Java, C, C++, C#, PHP, 
 ## Architecture
 
 ```
-Client (Next.js 15 App Router)
+Client (Next.js 16 App Router)
   -> API routes (/api/problems, /api/duel)
     -> OnlineCompiler.io (sandboxed code execution)
     -> Groq (openai/gpt-oss-20b AI referee)
+    -> MongoDB via Mongoose (users, problems, progress)
+  -> NextAuth (Google OAuth sign-in)
 ```
 
 ## Tech Stack
 
-- **Framework**: [Next.js 15 (App Router)](https://nextjs.org/)
+- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
 - **Language**: [TypeScript 5](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/), [Framer Motion](https://www.framer.com/motion/), [Lucide Icons](https://lucide.dev/)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/), [Framer Motion](https://www.framer.com/motion/), [Lucide Icons](https://lucide.dev/)
 - **Editor**: [@monaco-editor/react](https://github.com/suren-atoyan/monaco-react)
+- **Auth**: [NextAuth](https://next-auth.js.org/) with Google OAuth
+- **Database**: [MongoDB](https://www.mongodb.com/) with [Mongoose](https://mongoosejs.com/)
 - **AI Referee**: [Groq Cloud](https://groq.com/) (openai/gpt-oss-20b)
 - **Code Execution**: [OnlineCompiler.io](https://onlinecompiler.io/)
 
 ## Quick Start
+
+### Prerequisites
+- Node.js v20+
+- MongoDB v6.0+ running locally on port `27017`, or a MongoDB Atlas connection string
 
 ### 1. Clone the repository
 ```bash
@@ -76,15 +84,33 @@ npm install
 
 ### 3. Set up environment variables
 ```bash
-cp .env.example .env
+cp .env.example .env.local
 ```
-Fill in your keys in `.env`:
+Fill in your keys in `.env.local`:
 ```env
-GROQ_API_KEY=your-groq-api-key
+# Auth (generate AUTH_SECRET via `openssl rand -base64 32`)
+AUTH_SECRET=your-auth-secret
+NEXTAUTH_URL="http://localhost:3000"
+
+# Database
+MONGODB_URI="mongodb://127.0.0.1:27017/builtintech"
+
+# Google OAuth (mandatory — sign-in is Google only)
+GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# Code execution + AI referee
 ONLINECOMPILER_API_KEY=your-onlinecompiler-api-key
+GROQ_API_KEY=your-groq-api-key
 ```
 
-### 4. Run the dev server
+### 4. Seed the problem database
+```bash
+npm run seed
+```
+Without this step the Learn and Duel problem lists will be empty.
+
+### 5. Run the dev server
 ```bash
 npm run dev
 ```
