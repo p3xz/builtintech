@@ -35,6 +35,7 @@ export async function getRoom(roomCode: string): Promise<Room | undefined> {
       const parsedRoom: Room = {
         roomCode: dbRoom.roomCode,
         problemId: dbRoom.problemId,
+        difficulty: (dbRoom as any).difficulty,
         status: dbRoom.status as any,
         endsAt: dbRoom.endsAt ? new Date(dbRoom.endsAt).getTime() : undefined,
         player1: {
@@ -79,6 +80,7 @@ export async function setRoom(room: Room): Promise<void> {
       {
         roomCode: code,
         problemId: room.problemId,
+        difficulty: room.difficulty,
         status: room.status,
         endsAt: room.endsAt ? new Date(room.endsAt) : undefined,
         player1: {
@@ -147,6 +149,7 @@ export function toClientRoom(room: Room, requesterName?: string): ClientRoom {
   return {
     roomCode: room.roomCode,
     problemId: room.problemId,
+    difficulty: room.difficulty,
     status: room.status,
     endsAt: room.endsAt,
     player1: p1,

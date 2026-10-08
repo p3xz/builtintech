@@ -42,6 +42,7 @@ export type JudgeResult = {
 export type Room = {
   roomCode: string; // 6-char uppercase alphanumeric, e.g. "XK7Q2M"
   problemId: string;
+  difficulty?: "Easy" | "Medium" | "Hard" | "easy" | "medium" | "hard";
   status: RoomStatus;
   endsAt?: number; // server timestamp ms, set when player 2 joins
   player1: PlayerState;
@@ -62,9 +63,11 @@ export type ClientPlayerState = {
 export type ClientRoom = {
   roomCode: string;
   problemId: string;
+  difficulty?: "Easy" | "Medium" | "Hard" | "easy" | "medium" | "hard";
   status: RoomStatus;
   endsAt?: number;
   player1: ClientPlayerState;
   player2?: ClientPlayerState;
   judgeResult?: JudgeResult;
 };
+

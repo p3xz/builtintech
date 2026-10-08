@@ -44,9 +44,12 @@ export default function LessonDetailPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [stdout, setStdout] = useState<string>("");
   const [feedback, setFeedback] = useState<{
-    status: "idle" | "correct" | "incorrect";
+    status: "idle" | "correct" | "incorrect" | "compile_error" | "runtime_error" | "time_limit" | "execution_error";
     message: string;
+    errorTitle?: string;
+    hint?: string;
   }>({ status: "idle", message: "" });
+  const [stderr, setStderr] = useState<string>("");
 
   const [showVisualizer, setShowVisualizer] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -90,34 +93,91 @@ export default function LessonDetailPage() {
   const handleRunAndCheck = async () => {
     setIsRunning(true);
     setFeedback({ status: "idle", message: "" });
+    setStdout("");
+    setStderr("");
 
-    // Normalize check
-    const cleanCode = code.replace(/\s+/g, " ").trim();
-    const cleanSolution = (lesson.tryIt.solutionCode || "").replace(/\s+/g, " ").trim();
+    try {
+      const res = await fetch("/api/learning/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courseId: course.courseId,
+          moduleId: currentModule.moduleId,
+          lessonId: lesson.lessonId,
+          code,
+          language: course.language,
+          isCheck: true,
+        }),
+      });
 
-    // Basic output simulation or comparison
-    const passesCheck =
-      cleanCode.includes(cleanSolution) ||
-      (cleanCode.length > (lesson.tryIt.starterCode || "").length && !cleanCode.includes("pass"));
+      const data = await res.json();
 
-    setTimeout(async () => {
-      setIsRunning(false);
-      if (passesCheck) {
-        setStdout(lesson.tryIt.expectedOutput || "Code executed with 0 errors.\nOutput verified.");
-        setFeedback({
-          status: "correct",
-          message: "Great job! Your solution passed the activity validation.",
-        });
-        setIsCompleted(true);
-        await markLessonCompleted(course.courseId, currentModule.moduleId, lesson.lessonId);
-      } else {
-        setStdout("Output mismatch or incomplete code.");
-        setFeedback({
-          status: "incorrect",
-          message: lesson.tryIt.hint ? `Check hint: ${lesson.tryIt.hint}` : "Please complete the code requirements and run again.",
-        });
+      // Always show real stdout/stderr from the server
+      if (data.stdout) setStdout(data.stdout);
+      if (data.stderr) setStderr(data.stderr);
+
+      switch (data.status) {
+        case "PASSED":
+          setFeedback({
+            status: "correct",
+            message: data.message || "Great job! Your solution passed the activity validation.",
+          });
+          setIsCompleted(true);
+          break;
+
+        case "COMPILE_ERROR":
+          setFeedback({
+            status: "compile_error",
+            errorTitle: data.errorTitle || "Compilation Error",
+            message: data.output || data.message || "Compilation failed.",
+          });
+          break;
+
+        case "RUNTIME_ERROR":
+          setFeedback({
+            status: "runtime_error",
+            errorTitle: data.errorTitle || "Runtime Error",
+            message: data.output || data.message || "Program crashed at runtime.",
+          });
+          break;
+
+        case "TIME_LIMIT":
+          setFeedback({
+            status: "time_limit",
+            errorTitle: data.errorTitle || "Time Limit Exceeded",
+            message: data.output || data.message || "Execution timed out.",
+          });
+          break;
+
+        case "WRONG_ANSWER":
+          setFeedback({
+            status: "incorrect",
+            message: data.message || "Output does not match the expected result.",
+            hint: data.hint,
+          });
+          // Show actual stdout so the user can compare
+          if (data.stdout) setStdout(data.stdout);
+          break;
+
+        case "EXECUTION_ERROR":
+        default:
+          setFeedback({
+            status: "execution_error",
+            errorTitle: data.errorTitle || "Execution Error",
+            message: data.output || data.message || "An error occurred during code evaluation.",
+          });
+          break;
       }
-    }, 400);
+    } catch (err) {
+      setFeedback({
+        status: "execution_error",
+        errorTitle: "Network Error",
+        message: "Failed to reach the code execution service. Check your connection.",
+      });
+      console.error("Validate API error:", err);
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   const handleContinue = () => {
@@ -317,6 +377,13 @@ export default function LessonDetailPage() {
             </div>
           )}
 
+          {stderr && !stdout && (
+            <div className="p-3 bg-black/70 border border-rose-900/50 rounded-xl font-mono text-xs">
+              <span className="text-[10px] text-rose-400 uppercase block mb-1">Error Output:</span>
+              <pre className="text-rose-400 whitespace-pre-wrap">{stderr}</pre>
+            </div>
+          )}
+
           {feedback.status === "correct" && (
             <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-800/50 text-xs text-emerald-300 flex items-center gap-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
@@ -327,13 +394,30 @@ export default function LessonDetailPage() {
             </div>
           )}
 
-          {feedback.status === "incorrect" && (
-            <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-900/50 text-xs text-rose-300 flex items-center gap-3">
-              <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
-              <div>
-                <span className="font-bold font-mono block text-sm">Check Output</span>
-                <p className="mt-0.5">{feedback.message}</p>
+          {(feedback.status === "compile_error" || feedback.status === "runtime_error" || feedback.status === "time_limit" || feedback.status === "execution_error") && (
+            <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-900/50 text-xs text-rose-300 space-y-2">
+              <div className="flex items-center gap-3">
+                <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                <span className="font-bold font-mono block text-sm">{feedback.errorTitle || "Error"}</span>
               </div>
+              <pre className="whitespace-pre-wrap text-rose-300/80 font-mono text-[11px] bg-black/40 p-3 rounded-lg overflow-x-auto max-h-48 overflow-y-auto">{feedback.message}</pre>
+            </div>
+          )}
+
+          {feedback.status === "incorrect" && (
+            <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-900/50 text-xs text-amber-300 space-y-2">
+              <div className="flex items-center gap-3">
+                <XCircle className="w-5 h-5 text-amber-400 shrink-0" />
+                <div>
+                  <span className="font-bold font-mono block text-sm">Wrong Answer</span>
+                  <p className="mt-0.5">{feedback.message}</p>
+                </div>
+              </div>
+              {feedback.hint && (
+                <div className="p-2 bg-amber-900/20 border border-amber-800/30 rounded-lg text-[11px] text-amber-200">
+                  <strong>💡 Hint:</strong> {feedback.hint}
+                </div>
+              )}
             </div>
           )}
 

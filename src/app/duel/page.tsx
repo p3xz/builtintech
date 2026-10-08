@@ -19,7 +19,8 @@ export default function DuelHubPage() {
 
   const [activeTab, setActiveTab] = useState<"create" | "join">("create");
   const [problems, setProblems] = useState<ProblemChoice[]>([]);
-  const [selectedProblemId, setSelectedProblemId] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<"Easy" | "Medium" | "Hard">("Easy");
+  const [selectedProblemId, setSelectedProblemId] = useState("random");
 
   // Form states
   const [createNickname, setCreateNickname] = useState("");
@@ -43,9 +44,6 @@ export default function DuelHubPage() {
         if (res.ok) {
           const json = await res.json();
           setProblems(json.problems || []);
-          if (json.problems?.length > 0) {
-            setSelectedProblemId(json.problems[0].problemId);
-          }
         }
       } catch (err) {
         console.error(err);
@@ -54,14 +52,14 @@ export default function DuelHubPage() {
     fetchProblems();
   }, []);
 
+  const filteredProblems = problems.filter(
+    (p) => p.difficulty?.toLowerCase() === selectedDifficulty.toLowerCase()
+  );
+
   const handleCreateDuel = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!createNickname.trim()) {
       setErrorMsg("Please enter your nickname");
-      return;
-    }
-    if (!selectedProblemId) {
-      setErrorMsg("Please select a problem");
       return;
     }
 
@@ -74,7 +72,8 @@ export default function DuelHubPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           playerName: createNickname.trim(),
-          problemId: selectedProblemId,
+          difficulty: selectedDifficulty,
+          problemId: selectedProblemId === "random" ? undefined : selectedProblemId,
         }),
       });
 
@@ -201,12 +200,67 @@ export default function DuelHubPage() {
               />
             </div>
 
+            {/* Difficulty Selector */}
             <div>
               <label className="block text-xs font-mono text-zinc-400 uppercase tracking-wider mb-2 font-semibold">
-                Select Problem for Duel
+                Select Duel Difficulty
               </label>
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                {problems.map((p) => {
+              <div className="grid grid-cols-3 gap-2">
+                {(["Easy", "Medium", "Hard"] as const).map((diff) => {
+                  const isSel = selectedDifficulty === diff;
+                  const activeColor =
+                    diff === "Easy"
+                      ? "bg-emerald-950/40 border-emerald-500 text-emerald-300"
+                      : diff === "Medium"
+                      ? "bg-amber-950/40 border-amber-500 text-amber-300"
+                      : "bg-rose-950/40 border-rose-500 text-rose-300";
+
+                  return (
+                    <button
+                      key={diff}
+                      type="button"
+                      onClick={() => {
+                        setSelectedDifficulty(diff);
+                        setSelectedProblemId("random");
+                      }}
+                      className={`p-2.5 rounded-xl border font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                        isSel
+                          ? `${activeColor} shadow-md`
+                          : "bg-[#1a1a1e] border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                      }`}
+                    >
+                      <span>{diff}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Problem Selection */}
+            <div>
+              <label className="block text-xs font-mono text-zinc-400 uppercase tracking-wider mb-2 font-semibold">
+                Challenge Problem
+              </label>
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                {/* Random Auto-Select Option */}
+                <div
+                  onClick={() => setSelectedProblemId("random")}
+                  className={`p-3 rounded-lg border cursor-pointer transition flex items-center justify-between font-mono text-xs ${
+                    selectedProblemId === "random"
+                      ? "bg-cyan-950/30 border-cyan-500/60 text-white shadow-sm"
+                      : "bg-[#1a1a1e] border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span className="font-bold text-white">🎲 Auto-Match ({selectedDifficulty})</span>
+                  </div>
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-zinc-900 text-cyan-400 font-semibold">
+                    Recommended
+                  </span>
+                </div>
+
+                {filteredProblems.map((p) => {
                   const isSelected = selectedProblemId === p.problemId;
                   return (
                     <div
@@ -234,6 +288,7 @@ export default function DuelHubPage() {
                 })}
               </div>
             </div>
+
 
             <button
               type="submit"

@@ -35,9 +35,18 @@ export default function ModuleQuizPage() {
         setCurrentModule(m);
 
         const progress = await fetchUserProgress();
-        // Quiz is accessible if all lessons in module are complete OR if already previously completed
-        const allLessonsDone = m.lessons.every((l) => progress?.completedLessonIds?.includes(l.lessonId));
-        const previouslyPassed = progress?.passedQuizIds?.includes(m.quiz.quizId) || false;
+        // Quiz is accessible if all lessons in module are complete OR if already previously completed/passed
+        const allLessonsDone =
+          m.lessons.length === 0 ||
+          m.lessons.every(
+            (l) =>
+              progress?.completedLessonIds?.includes(l.lessonId) ||
+              progress?.completedLessonIds?.includes(l.id)
+          );
+        const previouslyPassed =
+          progress?.passedQuizIds?.includes(m.quiz?.quizId || "") ||
+          progress?.completedModuleIds?.includes(m.moduleId) ||
+          false;
         setIsUnlocked(allLessonsDone || previouslyPassed);
       }
       setLoading(false);
@@ -51,6 +60,8 @@ export default function ModuleQuizPage() {
   // Find next module ID if available
   const currentModIdx = course.modules.findIndex((m) => m.moduleId === moduleId);
   const nextMod = course.modules[currentModIdx + 1];
+
+  const firstLessonId = currentModule.lessons[0]?.lessonId || currentModule.lessons[0]?.id;
 
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-[#f4f4f5] py-8 px-4 sm:px-6 max-w-4xl mx-auto w-full font-sans">
@@ -80,11 +91,19 @@ export default function ModuleQuizPage() {
               Please complete all lessons in <strong className="text-white">{currentModule.title}</strong> before taking this module checkpoint quiz.
             </p>
           </div>
-          <Link href={`/learn/${course.courseId}/${currentModule.moduleId}/${currentModule.lessons[0].lessonId}`}>
-            <button className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-bold text-xs rounded-xl transition cursor-pointer">
-              Go to First Lesson →
-            </button>
-          </Link>
+          {firstLessonId ? (
+            <Link href={`/learn/${course.courseId}/${currentModule.moduleId}/${firstLessonId}`}>
+              <button className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-bold text-xs rounded-xl transition cursor-pointer">
+                Go to First Lesson →
+              </button>
+            </Link>
+          ) : (
+            <Link href={`/learn/${course.courseId}`}>
+              <button className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-bold text-xs rounded-xl transition cursor-pointer">
+                Back to Course →
+              </button>
+            </Link>
+          )}
         </div>
       ) : (
         <ModuleQuizRunner

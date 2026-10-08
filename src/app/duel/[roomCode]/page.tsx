@@ -267,7 +267,7 @@ export default function DuelRoomPage() {
 
       {/* Top Navigation Bar */}
       <header className="h-14 border-b border-zinc-800 bg-[#121214] px-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <span className="font-mono font-bold tracking-tight text-lg text-white">
             Clash<span className="text-cyan-400">Judge</span>
           </span>
@@ -277,7 +277,21 @@ export default function DuelRoomPage() {
               {roomCode}
             </span>
           </div>
+          {room?.difficulty && (
+            <span
+              className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded border uppercase tracking-wide ${
+                room.difficulty.toLowerCase() === "hard"
+                  ? "bg-rose-950/40 text-rose-300 border-rose-800/60"
+                  : room.difficulty.toLowerCase() === "medium"
+                  ? "bg-amber-950/40 text-amber-300 border-amber-800/60"
+                  : "bg-emerald-950/40 text-emerald-300 border-emerald-800/60"
+              }`}
+            >
+              {room.difficulty}
+            </span>
+          )}
         </div>
+
 
         {/* Center Countdown Timer */}
         <div className="flex items-center gap-3">

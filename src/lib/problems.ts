@@ -1,6 +1,8 @@
 import { connectToDatabase, getInsidCodeDb, getBuiltInTechDb } from "./mongodb";
 import { Question } from "@/models/Question";
 import { IQuestion, DifficultyLevel } from "@/types";
+import { getServerProblem, getAllServerProblems } from "@/data/problems";
+
 
 export interface PublicProblemData {
   _id: string;
@@ -62,25 +64,45 @@ export async function getPublicProblem(idOrSlug: string): Promise<PublicProblemD
     console.warn("[getPublicProblem] insidcode lookup warning:", insidcodeErr);
   }
 
-  // 2. Fallback to builtintech.questions via Mongoose
-  try {
-    await connectToDatabase();
-    const question = await Question.findOne({
-      $or: [
-        { problemId: cleanId },
-        { slug: cleanSlug },
-      ],
-      isPublished: true,
-    })
-      .select("problemId title slug difficulty description constraints examples tags xp starterTemplates")
-      .lean<PublicProblemData>();
+    // 2. Fallback to builtintech.questions via Mongoose
+    try {
+      await connectToDatabase();
+      const question = await Question.findOne({
+        $or: [
+          { problemId: cleanId },
+          { slug: cleanSlug },
+        ],
+        isPublished: true,
+      })
+        .select("problemId title slug difficulty description constraints examples tags xp starterTemplates")
+        .lean<PublicProblemData>();
 
-    return question || null;
-  } catch (err) {
-    console.error("[getPublicProblem] Error:", err);
+      if (question) return question;
+    } catch (err) {
+      console.error("[getPublicProblem] Error:", err);
+    }
+
+    // 3. Fallback to server problems
+    const fallbackServerProb = getServerProblem(cleanId);
+    if (fallbackServerProb) {
+      return {
+        _id: fallbackServerProb.id,
+        problemId: fallbackServerProb.id,
+        title: fallbackServerProb.title,
+        slug: fallbackServerProb.id,
+        difficulty: fallbackServerProb.id.includes("longest") || fallbackServerProb.id.includes("reverse") ? "Medium" : "Easy",
+        description: fallbackServerProb.statement,
+        constraints: [],
+        examples: fallbackServerProb.examples || [],
+        tags: ["algorithms", "math"],
+        xp: 100,
+        starterTemplates: {},
+      };
+    }
+
     return null;
   }
-}
+
 
 export async function getAllPublishedProblems(filter?: {
   difficulty?: string;
@@ -159,11 +181,38 @@ export async function getAllPublishedProblems(filter?: {
       .sort({ problemId: 1 })
       .lean<PublicProblemData[]>();
 
-    return questions;
+    if (questions && questions.length > 0) {
+      return questions;
+    }
   } catch (err) {
     console.error("[getAllPublishedProblems] Error:", err);
-    return [];
   }
+
+  // 3. Guaranteed Fallback to curated server problems
+  const serverProbs = getAllServerProblems();
+  const mapped = serverProbs.map((sp) => {
+    const isMedium = sp.id.includes("longest") || sp.id.includes("reverse");
+    const diff: DifficultyLevel = isMedium ? "Medium" : "Easy";
+    return {
+      _id: sp.id,
+      problemId: sp.id,
+      title: sp.title,
+      slug: sp.id,
+      difficulty: diff,
+      description: sp.statement,
+      constraints: [],
+      examples: sp.examples || [],
+      tags: ["algorithms"],
+      xp: 100,
+      starterTemplates: {},
+    };
+  });
+
+  if (filter?.difficulty && filter.difficulty !== "All") {
+    return mapped.filter((p) => p.difficulty.toLowerCase() === filter.difficulty?.toLowerCase());
+  }
+
+  return mapped;
 }
 
 /**
@@ -217,9 +266,34 @@ export async function getProblemForJudging(idOrSlug: string): Promise<IQuestion 
       $or: [{ problemId: cleanId }, { slug: cleanSlug }],
       isPublished: true,
     }).lean<IQuestion>();
-    return q || null;
+    if (q) return q;
   } catch (err) {
     console.error("[getProblemForJudging] Error:", err);
-    return null;
   }
+
+  // 3. Fallback to server problems
+  const sp = getServerProblem(cleanId);
+  if (sp) {
+    return {
+      _id: sp.id,
+      problemId: sp.id,
+      title: sp.title,
+      slug: sp.id,
+      difficulty: sp.id.includes("longest") || sp.id.includes("reverse") ? "Medium" : "Easy",
+      description: sp.statement,
+      constraints: [],
+      examples: sp.examples || [],
+      starterTemplates: {},
+      tags: ["algorithms"],
+      xp: 100,
+      hiddenTestCases: sp.hiddenTests.map((t) => ({ input: t.input, expectedOutput: t.expected })),
+      referenceSolution: sp.referenceSolution,
+      isPublished: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
+
+  return null;
 }
+
