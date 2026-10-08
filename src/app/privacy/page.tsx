@@ -5,7 +5,7 @@ import { ArrowLeft, Shield, Lock, Eye, Database, Cpu, UserX, FileText } from "lu
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Built In Tech",
-  description: "Privacy Policy explaining how Built In Tech / CodeForge collects, uses, and protects your information, telemetry, and code submissions.",
+  description: "Privacy Policy explaining how Built In Tech collects, uses, and protects your information, telemetry, and code submissions.",
 };
 
 export default function PrivacyPage() {
@@ -38,10 +38,10 @@ export default function PrivacyPage() {
           {/* Intro */}
           <section className="space-y-3 p-6 bg-[#121214] border border-zinc-800 rounded-2xl">
             <p className="text-sm font-medium text-white leading-normal">
-              Privacy at Built In Tech / CodeForge
+              Privacy at Built In Tech
             </p>
             <p className="text-zinc-400">
-              This Privacy Policy explains how CodeForge collects, uses, and discloses information about you when you use our Service.
+              This Privacy Policy explains how Built In Tech collects, uses, and discloses information about you when you use our Service.
             </p>
           </section>
 
