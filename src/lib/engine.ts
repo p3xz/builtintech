@@ -183,7 +183,7 @@ export function renderCertificateSvg(cert: {
   <rect x="40" y="40" width="920" height="620" rx="12" fill="none" stroke="#334155" stroke-width="1.5" />
 
   <g transform="translate(500, 110)" text-anchor="middle">
-    <text font-family="'Segoe UI', Helvetica, sans-serif" font-weight="900" font-size="34" fill="url(#goldGrad)" letter-spacing="4">⚡ CODEFORGE ACADEMY</text>
+    <text font-family="'Segoe UI', Helvetica, sans-serif" font-weight="900" font-size="34" fill="url(#goldGrad)" letter-spacing="4">⚡ BUILT IN TECH ACADEMY</text>
     <text y="32" font-family="'Segoe UI', Helvetica, sans-serif" font-weight="500" font-size="14" fill="#94a3b8" letter-spacing="2">BUILT IN TECH LEARNING ECOSYSTEM</text>
   </g>
 
