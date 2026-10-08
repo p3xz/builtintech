@@ -25,7 +25,6 @@ export function normalizeOutput(str: unknown): string {
     .join("\n");
 }
 
-
 export const ONLINECOMPILER_LANG_MAP: Record<string, string> = {
   python: "python-3.14",
   "python-3.14": "python-3.14",
@@ -40,13 +39,85 @@ export const ONLINECOMPILER_LANG_MAP: Record<string, string> = {
   "openjdk-25": "openjdk-25",
 };
 
+export function classifyExecutionError(errorText: string): {
+  compilationError: boolean;
+  runtimeError: boolean;
+} {
+  if (!errorText || errorText.trim() === "") {
+    return { compilationError: false, runtimeError: true };
+  }
+
+  const errLower = errorText.toLowerCase();
+
+  // 1. Explicit Runtime Errors (Prioritized over generic tokens)
+  const isExplicitRuntime =
+    errLower.includes("exception in thread") ||
+    errLower.includes("java.lang.") ||
+    errLower.includes("traceback (most recent call last)") ||
+    errLower.includes("segmentation fault") ||
+    errLower.includes("floating point exception") ||
+    errLower.includes("aborted (core dumped)") ||
+    errLower.includes("sigsegv") ||
+    errLower.includes("sigfpe") ||
+    errLower.includes("sigabrt") ||
+    errLower.includes("terminate called") ||
+    errLower.includes("zerodivisionerror") ||
+    errLower.includes("indexerror") ||
+    errLower.includes("keyerror") ||
+    errLower.includes("valueerror") ||
+    errLower.includes("nullpointerexception") ||
+    errLower.includes("arithmeticexception") ||
+    errLower.includes("arrayindexoutofboundsexception") ||
+    errLower.includes("stringindexoutofboundsexception") ||
+    errLower.includes("nosuchelementexception") ||
+    errLower.includes("inputmismatchexception") ||
+    errLower.includes("uncaught exception") ||
+    errLower.includes("uncaught referenceerror") ||
+    errLower.includes("uncaught typeerror") ||
+    errLower.includes("uncaught rangeerror");
+
+  if (isExplicitRuntime) {
+    return { compilationError: false, runtimeError: true };
+  }
+
+  // 2. Explicit Compilation Errors
+  const isExplicitCompilation =
+    errLower.includes("syntaxerror") ||
+    errLower.includes("indentationerror") ||
+    errLower.includes("taberror") ||
+    errLower.includes("parse error") ||
+    errLower.includes("cannot find symbol") ||
+    errLower.includes("undefined reference") ||
+    errLower.includes("ld returned") ||
+    errLower.includes("class, interface, enum, or record expected") ||
+    errLower.includes("reached end of file while parsing") ||
+    errLower.includes("illegal start of expression") ||
+    errLower.includes("not a statement") ||
+    errLower.includes("unclosed string literal") ||
+    errLower.includes("expected ';'") ||
+    errLower.includes("expected ')'") ||
+    errLower.includes("expected '}'") ||
+    errLower.includes("compilation error") ||
+    errLower.includes("compilation failed") ||
+    errLower.includes("fatal error:") ||
+    (errLower.includes("error:") && !errLower.includes("runtime error")) ||
+    /\b\w+\.(?:java|cpp|c|cc|cxx):\d+/i.test(errorText);
+
+  if (isExplicitCompilation) {
+    return { compilationError: true, runtimeError: false };
+  }
+
+  return { compilationError: false, runtimeError: true };
+}
+
 export async function executeCodeOnlineCompilerSyncWithLang(
   languageOrCompiler: string,
   code: string,
   stdin: string = ""
 ): Promise<ExecutionResult> {
   const apiKey = process.env.ONLINECOMPILER_API_KEY || "";
-  const compilerId = ONLINECOMPILER_LANG_MAP[languageOrCompiler.toLowerCase().trim()] || "python-3.14";
+  const compilerId =
+    ONLINECOMPILER_LANG_MAP[languageOrCompiler.toLowerCase().trim()] || "python-3.14";
 
   // Guard sizes
   if (Buffer.byteLength(code, "utf-8") > MAX_CODE_SIZE_BYTES) {
@@ -93,14 +164,14 @@ export async function executeCodeOnlineCompilerSyncWithLang(
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 35000); // 35-second client abort
+  const timeoutId = setTimeout(() => controller.abort(), 35000); // 35-second abort limit
 
   try {
     const response = await fetch("https://api.onlinecompiler.io/api/run-code-sync/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: apiKey, // Raw API key, NOT Bearer
+        Authorization: apiKey, // Raw API key (without Bearer prefix)
       },
       body: JSON.stringify({
         compiler: compilerId,
@@ -129,70 +200,64 @@ export async function executeCodeOnlineCompilerSyncWithLang(
 
     const data = await response.json();
 
-    const rawStdout = typeof data.stdout === "string" ? data.stdout : (typeof data.output === "string" ? data.output : "");
-    const rawStderr = typeof data.stderr === "string" ? data.stderr : (typeof data.error === "string" ? data.error : "");
-    const rawOutput = typeof data.output === "string" ? data.output : (rawStdout || rawStderr);
+    // OnlineCompiler API returns output in 'output' or 'stdout', error in 'error' or 'stderr'
+    const rawStdout =
+      (typeof data.output === "string" && data.output.length > 0)
+        ? data.output
+        : (typeof data.stdout === "string" ? data.stdout : "");
 
-    // Truncate output at 256 KB
+    const rawStderr =
+      (typeof data.error === "string" && data.error.length > 0)
+        ? data.error
+        : (typeof data.stderr === "string" ? data.stderr : "");
+
     const stdout = rawStdout.slice(0, MAX_OUTPUT_SIZE_CHARS);
     const stderr = rawStderr.slice(0, MAX_OUTPUT_SIZE_CHARS);
-    const output = rawOutput.slice(0, MAX_OUTPUT_SIZE_CHARS);
+    const output = (stdout || stderr).slice(0, MAX_OUTPUT_SIZE_CHARS);
 
-    const time = typeof data.time === "number" ? data.time : (parseFloat(data.time) || 0);
-    const memory = typeof data.memory === "number" ? data.memory : (parseFloat(data.memory) || 0);
+    const time = typeof data.time === "number" ? data.time : parseFloat(data.time) || 0;
+    const memory = typeof data.memory === "number" ? data.memory : parseFloat(data.memory) || 0;
 
     const statusStr = String(data.status || "").toLowerCase();
-    const exitCode = data.exit_code !== undefined ? data.exit_code : null;
+    const exitCode = typeof data.exit_code === "number" ? data.exit_code : null;
 
-    const errorCombined = (stderr + " " + (data.error || "") + " " + statusStr).toLowerCase();
-
-    // Check timeout
-    const isTimeout =
-      statusStr === "timeout" ||
-      errorCombined.includes("timeout") ||
-      errorCombined.includes("timed out") ||
-      time >= 30;
-
-    // Classify errors
-    const isCompError =
-      errorCombined.includes("syntaxerror") ||
-      errorCombined.includes("indentationerror") ||
-      errorCombined.includes("parse error") ||
-      errorCombined.includes("compilation failed") ||
-      errorCombined.includes("cannot find symbol") ||
-      errorCombined.includes("error: expected");
-
-    const isRunError =
-      !isCompError &&
-      (errorCombined.includes("traceback") ||
-        errorCombined.includes("exception") ||
-        errorCombined.includes("segmentation fault") ||
-        (exitCode !== null && exitCode !== 0) ||
-        statusStr === "error" ||
-        statusStr === "runtime error");
-
-    const success =
+    const isSuccess =
       (statusStr === "success" || statusStr === "") &&
       (exitCode === 0 || exitCode === null) &&
-      !isTimeout &&
-      !isCompError &&
-      !isRunError;
+      stderr.length === 0;
+
+    const isTimeout =
+      statusStr === "timeout" ||
+      stderr.toLowerCase().includes("timeout") ||
+      stderr.toLowerCase().includes("timed out") ||
+      time >= 30;
+
+    let compError = false;
+    let runError = false;
+
+    if (!isSuccess && !isTimeout) {
+      const classified = classifyExecutionError(stderr || output || "Execution Error");
+      compError = classified.compilationError;
+      runError = classified.runtimeError;
+    }
 
     return {
-      success,
+      success: isSuccess && !isTimeout && !compError && !runError,
       stdout,
       stderr,
       output,
       time,
       memory,
       isTimeout,
-      compilationError: isCompError,
-      runtimeError: isRunError,
+      compilationError: compError,
+      runtimeError: runError,
     };
   } catch (err: unknown) {
     clearTimeout(timeoutId);
     const isAbort = (err as Error)?.name === "AbortError";
-    const msg = isAbort ? "Request aborted after 35s timeout." : (err as Error)?.message || "Unknown execution error";
+    const msg = isAbort
+      ? "Request aborted after 35s timeout."
+      : (err as Error)?.message || "Unknown execution error";
 
     return {
       success: false,
@@ -208,7 +273,6 @@ export async function executeCodeOnlineCompilerSyncWithLang(
   }
 }
 
-// Default export signature used across duels and single execution
 export async function executeCodeOnlineCompilerSync(
   code: string,
   stdin: string = ""

@@ -4,27 +4,24 @@ import dns from "dns";
 
 // Ensure reliable DNS resolution for MongoDB Atlas SRV connection strings
 try {
+  dns.setDefaultResultOrder?.("ipv4first");
   dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
 } catch {
   // Ignore in environments where setServers is restricted
 }
 
+const DIRECT_REPLICA_URI =
+  "mongodb://namishnakul_db_user:7DeYcyTGs2AfIXv4@ac-rrsi1xy-shard-00-00.znbgedq.mongodb.net:27017,ac-rrsi1xy-shard-00-01.znbgedq.mongodb.net:27017,ac-rrsi1xy-shard-00-02.znbgedq.mongodb.net:27017/insidcode?ssl=true&replicaSet=atlas-7z6mty-shard-0&authSource=admin&appName=insidcode";
+
 /**
  * Single-database architecture: everything lives in the `insidcode` database.
- *
- * Environment variables:
- *   MONGODB_URI            – Atlas connection string (defaults to INSIDCODE_MONGODB_URI)
- *   MONGODB_DB_NAME        – Database name (defaults to "insidcode")
- *   INSIDCODE_MONGODB_URI  – Legacy alias, used as fallback for MONGODB_URI
- *   INSIDCODE_DB_NAME      – Legacy alias, used as fallback for MONGODB_DB_NAME
  */
-
 function getUri(): string {
   return (
     process.env.MONGODB_URI ||
     process.env.INSIDCODE_MONGODB_URI ||
     process.env.DATABASE_URL ||
-    "mongodb://127.0.0.1:27017/insidcode"
+    DIRECT_REPLICA_URI
   );
 }
 
@@ -39,7 +36,6 @@ function getDbName(): string {
 function sanitizedUri(uri: string): string {
   return uri.replace(/:\/\/([^:]+):([^@]+)@/, "://$1:<redacted>@");
 }
-
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -80,7 +76,24 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
       .then((mongooseInstance) => {
         return mongooseInstance;
       })
-      .catch((err) => {
+      .catch(async (err) => {
+        // If SRV DNS query was refused or failed, retry with direct replicaSet URI
+        const isDnsError =
+          err?.message?.includes("querySrv") ||
+          err?.code === "ECONNREFUSED" ||
+          err?.name === "MongoServerSelectionError";
+
+        if (isDnsError && uri !== DIRECT_REPLICA_URI) {
+          console.warn("[MongoDB] SRV lookup failed, falling back to direct replica nodes...");
+          try {
+            const fallbackInstance = await mongoose.connect(DIRECT_REPLICA_URI, opts);
+            return fallbackInstance;
+          } catch (fallbackErr) {
+            cached.promise = null;
+            throw fallbackErr;
+          }
+        }
+
         cached.promise = null;
         console.error("[MongoDB] Mongoose connection failed:", err?.message || err);
         console.error("[MongoDB] URI host:", sanitizedUri(uri));
@@ -98,10 +111,7 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
 }
 
 /**
- * Lazy MongoClient for the unified database.
- * Does NOT connect at import time. Connection starts on first actual use.
- * Failures clear the cached promise so the next call retries instead of
- * reusing a rejected promise. Errors propagate to the caller.
+ * Lazy MongoClient for the unified database with automatic direct-node fallback.
  */
 function getClientPromise(): Promise<MongoClient> {
   if (!global._mongoClientPromise) {
@@ -109,22 +119,32 @@ function getClientPromise(): Promise<MongoClient> {
     const client = new MongoClient(uri, {
       serverSelectionTimeoutMS: 5000,
     });
-    global._mongoClientPromise = client.connect().catch((err) => {
-      global._mongoClientPromise = undefined;
-      console.error(
-        "[MongoDB] Client connection failed:",
-        err?.message || err
-      );
-      console.error("[MongoDB] URI host:", sanitizedUri(uri));
-      throw err;
-    });
+
+    global._mongoClientPromise = client
+      .connect()
+      .catch(async (err) => {
+        const isDnsError =
+          err?.message?.includes("querySrv") ||
+          err?.code === "ECONNREFUSED" ||
+          err?.name === "MongoServerSelectionError";
+
+        if (isDnsError && uri !== DIRECT_REPLICA_URI) {
+          console.warn("[MongoDB] Client SRV lookup failed, connecting to direct replica nodes...");
+          const directClient = new MongoClient(DIRECT_REPLICA_URI, {
+            serverSelectionTimeoutMS: 5000,
+          });
+          return directClient.connect();
+        }
+
+        global._mongoClientPromise = undefined;
+        console.error("[MongoDB] Client connection failed:", err?.message || err);
+        console.error("[MongoDB] URI host:", sanitizedUri(uri));
+        throw err;
+      });
   }
   return global._mongoClientPromise;
 }
 
-
-// Backwards-compatible lazy exports. These behave like promises but do not
-// trigger a connection until first awaited/used. Safe to import anywhere.
 export const clientPromise: Promise<MongoClient> = {
   then: (onFulfilled, onRejected) =>
     getClientPromise().then(onFulfilled, onRejected),
@@ -133,25 +153,17 @@ export const clientPromise: Promise<MongoClient> = {
   [Symbol.toStringTag]: "Promise",
 } as Promise<MongoClient>;
 
-// Legacy alias — points to the same single connection
 export const insidcodeClientPromise: Promise<MongoClient> = clientPromise;
 
-/**
- * Access the unified database (insidcode).
- * All collections live here: users, questions, submissions, duelrooms,
- * courses, modules, lessons, ranks, achievements, etc.
- */
 export async function getDatabase(): Promise<Db> {
   const client = await getClientPromise();
   return client.db(getDbName());
 }
 
-/** @deprecated Use getDatabase() — both point to the same insidcode database */
 export async function getBuiltInTechDb(): Promise<Db> {
   return getDatabase();
 }
 
-/** Legacy alias — points to the same unified database */
 export async function getInsidCodeDb(): Promise<Db> {
   return getDatabase();
 }
