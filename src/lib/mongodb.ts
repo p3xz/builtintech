@@ -1,24 +1,35 @@
 import mongoose from "mongoose";
 import { MongoClient, Db } from "mongodb";
 
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  process.env.DATABASE_URL ||
-  "mongodb://127.0.0.1:27017/builtintech";
+function getBuiltInTechUri(): string {
+  return (
+    process.env.MONGODB_URI ||
+    process.env.DATABASE_URL ||
+    "mongodb://127.0.0.1:27017/builtintech"
+  );
+}
 
-const BUILTINTECH_DB_NAME = process.env.MONGODB_DB_NAME || "builtintech";
+function getBuiltInTechDbName(): string {
+  return process.env.MONGODB_DB_NAME || "builtintech";
+}
 
-const INSIDCODE_URI =
-  process.env.INSIDCODE_MONGODB_URI ||
-  process.env.MONGODB_URI ||
-  process.env.DATABASE_URL ||
-  "mongodb://127.0.0.1:27017/insidcode";
+function getInsidCodeUri(): string {
+  return (
+    process.env.INSIDCODE_MONGODB_URI ||
+    process.env.MONGODB_URI ||
+    process.env.DATABASE_URL ||
+    "mongodb://127.0.0.1:27017/insidcode"
+  );
+}
 
-const INSIDCODE_DB_NAME = process.env.INSIDCODE_DB_NAME || "insidcode";
+function getInsidCodeDbName(): string {
+  return process.env.INSIDCODE_DB_NAME || "insidcode";
+}
 
 function sanitizedUri(uri: string): string {
   return uri.replace(/:\/\/([^:]+):([^@]+)@/, "://$1:<redacted>@");
 }
+
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -41,27 +52,30 @@ if (!global.mongooseCache) {
 }
 
 export async function connectToDatabase(): Promise<typeof mongoose> {
-  if (cached.conn) {
+  if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
   }
+
+  const uri = getBuiltInTechUri();
+  const dbName = getBuiltInTechDbName();
 
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
-      dbName: BUILTINTECH_DB_NAME,
+      dbName,
     };
 
     cached.promise = mongoose
-      .connect(MONGODB_URI, opts)
+      .connect(uri, opts)
       .then((mongooseInstance) => {
         return mongooseInstance;
       })
       .catch((err) => {
         cached.promise = null;
         console.error("[MongoDB] BuiltInTech mongoose connection failed:", err?.message || err);
-        console.error("[MongoDB] URI host:", sanitizedUri(MONGODB_URI));
+        console.error("[MongoDB] URI host:", sanitizedUri(uri));
         throw err;
       });
   }
@@ -83,7 +97,8 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
  */
 function getClientPromise(): Promise<MongoClient> {
   if (!global._mongoClientPromise) {
-    const client = new MongoClient(MONGODB_URI, {
+    const uri = getBuiltInTechUri();
+    const client = new MongoClient(uri, {
       serverSelectionTimeoutMS: 5000,
     });
     global._mongoClientPromise = client.connect().catch((err) => {
@@ -92,7 +107,7 @@ function getClientPromise(): Promise<MongoClient> {
         "[MongoDB] BuiltInTech client connection failed:",
         err?.message || err
       );
-      console.error("[MongoDB] URI host:", sanitizedUri(MONGODB_URI));
+      console.error("[MongoDB] URI host:", sanitizedUri(uri));
       throw err;
     });
   }
@@ -107,7 +122,8 @@ function getClientPromise(): Promise<MongoClient> {
  */
 function getInsidcodeClientPromise(): Promise<MongoClient> {
   if (!global._insidcodeClientPromise) {
-    const client = new MongoClient(INSIDCODE_URI, {
+    const uri = getInsidCodeUri();
+    const client = new MongoClient(uri, {
       serverSelectionTimeoutMS: 5000,
     });
     global._insidcodeClientPromise = client.connect().catch((err) => {
@@ -116,12 +132,13 @@ function getInsidcodeClientPromise(): Promise<MongoClient> {
         "[MongoDB] InsidCode client connection failed:",
         err?.message || err
       );
-      console.error("[MongoDB] URI host:", sanitizedUri(INSIDCODE_URI));
+      console.error("[MongoDB] URI host:", sanitizedUri(uri));
       throw err;
     });
   }
   return global._insidcodeClientPromise;
 }
+
 
 // Backwards-compatible lazy exports. These behave like promises but do not
 // trigger a connection until first awaited/used. Safe to import anywhere.
@@ -147,7 +164,7 @@ export const insidcodeClientPromise: Promise<MongoClient> = {
  */
 export async function getDatabase(): Promise<Db> {
   const client = await getClientPromise();
-  return client.db(BUILTINTECH_DB_NAME);
+  return client.db(getBuiltInTechDbName());
 }
 
 export async function getBuiltInTechDb(): Promise<Db> {
@@ -160,5 +177,6 @@ export async function getBuiltInTechDb(): Promise<Db> {
  */
 export async function getInsidCodeDb(): Promise<Db> {
   const client = await getInsidcodeClientPromise();
-  return client.db(INSIDCODE_DB_NAME);
+  return client.db(getInsidCodeDbName());
 }
+

@@ -51,16 +51,12 @@ export function generateExecutionTrace(language: string, code: string): IExecuti
 
     // Print statements
     if (trimmed.startsWith("print(") || trimmed.startsWith("console.log(")) {
-      const innerMatch = trimmed.match(/(?:print|console\.log)\((.*)\)/);
+      const innerMatch = trimmed.match(/(?:print|console\.log)\(([\s\S]*)\)$/);
       if (innerMatch) {
-        let printContent = innerMatch[1].replace(/["']/g, "");
-        // Simple variable substitution
-        for (const [k, v] of Object.entries(variables)) {
-          printContent = printContent.replace(new RegExp(`\\b${k}\\b`, "g"), String(v));
-          printContent = printContent.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
-        }
+        const rawContent = innerMatch[1].trim();
+        const evaluated = evaluatePrintExpression(rawContent, variables);
         if (currentStdout) currentStdout += "\n";
-        currentStdout += printContent;
+        currentStdout += evaluated;
       }
     }
 
@@ -95,6 +91,45 @@ export function generateExecutionTrace(language: string, code: string): IExecuti
   };
 }
 
+function evaluatePrintExpression(
+  expr: string,
+  variables: Record<string, string | number | boolean | null | Array<unknown>>
+): string {
+  // 1. Check if it's a Python f-string: f"..." or f'...'
+  const fStringMatch = expr.match(/^f(["'`])([\s\S]*)\1$/);
+  if (fStringMatch) {
+    const template = fStringMatch[2];
+    return template.replace(/\{([^{}]+)\}/g, (_, key) => {
+      const trimmedKey = key.trim();
+      if (trimmedKey in variables) {
+        return String(variables[trimmedKey]);
+      }
+      return `{${trimmedKey}}`;
+    });
+  }
+
+  // 2. Check if it's a regular quoted string: "..." or '...'
+  const stringMatch = expr.match(/^(['"`])([\s\S]*)\1$/);
+  if (stringMatch) {
+    return stringMatch[2];
+  }
+
+  // 3. Handle multiple comma-separated arguments (e.g. print("Hello", name))
+  if (expr.includes(",")) {
+    const args = expr.split(",").map((a) => a.trim());
+    return args
+      .map((arg) => evaluatePrintExpression(arg, variables))
+      .join(" ");
+  }
+
+  // 4. Check if it's a single variable identifier
+  if (expr in variables) {
+    return String(variables[expr]);
+  }
+
+  return expr;
+}
+
 function getLineExplanation(statement: string, language: string): string {
   if (statement.startsWith("print") || statement.startsWith("console.log")) {
     return "Outputs evaluated expressions to standard output stream.";
@@ -113,3 +148,5 @@ function getLineExplanation(statement: string, language: string): string {
   }
   return "Executes statement.";
 }
+
+
