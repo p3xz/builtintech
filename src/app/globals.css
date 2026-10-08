@@ -20,9 +20,11 @@
 
 html {
   color-scheme: dark;
+  overflow-x: clip;
 }
 
 body {
+  overflow-x: clip;
   background-color: var(--bg-dark);
   color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
