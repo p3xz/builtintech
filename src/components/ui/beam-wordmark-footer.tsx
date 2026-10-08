@@ -315,7 +315,7 @@ export default function BeamWordmarkFooter({
   const word = (wordmark ?? brand).trim() || brand
   const letters = React.useMemo(() => Array.from(word), [word])
   const credit = credits ?? [
-    { lead: brand + " &bull; ", label: "KJU Hacktoberfest Hack Day 2026", href: "https://github.com/p3xz/builtintech" },
+    { lead: brand + " • ", label: "KJU Hacktoberfest Hack Day 2026", href: "https://github.com/p3xz/builtintech" },
     { lead: "Interactive Learning & ", label: "1v1 Competitive Arena", tail: "" },
   ]
 
@@ -509,7 +509,7 @@ export default function BeamWordmarkFooter({
     "--bwf-bot": "100%",
   } as React.CSSProperties
 
-  const label = company ?? brand + " &bull; CodeForge"
+  const label = company ?? brand + " • CodeForge"
   let d = 0
   const delay = () => ({ "--bwf-d": (d += 70) + "ms" }) as React.CSSProperties
 
