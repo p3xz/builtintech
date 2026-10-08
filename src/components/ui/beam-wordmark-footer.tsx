@@ -509,7 +509,7 @@ export default function BeamWordmarkFooter({
     "--bwf-bot": "100%",
   } as React.CSSProperties
 
-  const label = company ?? brand + " • CodeForge"
+  const label = company ?? brand + " • Built In Tech"
   let d = 0
   const delay = () => ({ "--bwf-d": (d += 70) + "ms" }) as React.CSSProperties
 
