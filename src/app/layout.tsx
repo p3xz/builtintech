@@ -8,6 +8,18 @@ import { CookieConsent } from "@/components/layout/CookieConsent";
 export const metadata: Metadata = {
   title: "Built In Tech — Interactive Coding Education & 1v1 Arena",
   description: "Learn programming step-by-step with structured modules, practice in sandboxes, solve detective cases, and compete in AI-refereed 1v1 live coding duels.",
+  openGraph: {
+    title: "Built In Tech — Learn. Practice. Compete.",
+    description: "Learn programming step-by-step with structured modules, practice in sandboxes, and compete in AI-refereed 1v1 live coding duels.",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Built In Tech" }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Built In Tech — Learn. Practice. Compete.",
+    description: "Learn programming step-by-step with structured modules, practice in sandboxes, and compete in AI-refereed 1v1 live coding duels.",
+    images: ["/og.png"],
+  },
 };
 
 export default function RootLayout({
