@@ -1,6 +1,6 @@
 <div align="center">
   <h1>builtintech</h1>
-  <p><strong>CodeForge: a gamified coding learning platform with AI-refereed 1v1 duels</strong></p>
+  <p><strong>Built In Tech: a gamified coding learning platform with AI-refereed 1v1 duels</strong></p>
 
   <p>
     <a href="#features">Features</a> •
