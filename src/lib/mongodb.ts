@@ -10,19 +10,20 @@ try {
   // Ignore in environments where setServers is restricted
 }
 
-const DIRECT_REPLICA_URI =
-  "mongodb://namishnakul_db_user:7DeYcyTGs2AfIXv4@ac-rrsi1xy-shard-00-00.znbgedq.mongodb.net:27017,ac-rrsi1xy-shard-00-01.znbgedq.mongodb.net:27017,ac-rrsi1xy-shard-00-02.znbgedq.mongodb.net:27017/insidcode?ssl=true&replicaSet=atlas-7z6mty-shard-0&authSource=admin&appName=insidcode";
-
 /**
  * Single-database architecture: everything lives in the `insidcode` database.
  */
 function getUri(): string {
-  return (
+  const uri =
     process.env.MONGODB_URI ||
     process.env.INSIDCODE_MONGODB_URI ||
-    process.env.DATABASE_URL ||
-    DIRECT_REPLICA_URI
-  );
+    process.env.DATABASE_URL;
+  if (!uri) {
+    throw new Error(
+      "[MongoDB] No connection string configured. Set MONGODB_URI environment variable."
+    );
+  }
+  return uri;
 }
 
 function getDbName(): string {
@@ -77,23 +78,6 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
         return mongooseInstance;
       })
       .catch(async (err) => {
-        // If SRV DNS query was refused or failed, retry with direct replicaSet URI
-        const isDnsError =
-          err?.message?.includes("querySrv") ||
-          err?.code === "ECONNREFUSED" ||
-          err?.name === "MongoServerSelectionError";
-
-        if (isDnsError && uri !== DIRECT_REPLICA_URI) {
-          console.warn("[MongoDB] SRV lookup failed, falling back to direct replica nodes...");
-          try {
-            const fallbackInstance = await mongoose.connect(DIRECT_REPLICA_URI, opts);
-            return fallbackInstance;
-          } catch (fallbackErr) {
-            cached.promise = null;
-            throw fallbackErr;
-          }
-        }
-
         cached.promise = null;
         console.error("[MongoDB] Mongoose connection failed:", err?.message || err);
         console.error("[MongoDB] URI host:", sanitizedUri(uri));
@@ -123,19 +107,6 @@ function getClientPromise(): Promise<MongoClient> {
     global._mongoClientPromise = client
       .connect()
       .catch(async (err) => {
-        const isDnsError =
-          err?.message?.includes("querySrv") ||
-          err?.code === "ECONNREFUSED" ||
-          err?.name === "MongoServerSelectionError";
-
-        if (isDnsError && uri !== DIRECT_REPLICA_URI) {
-          console.warn("[MongoDB] Client SRV lookup failed, connecting to direct replica nodes...");
-          const directClient = new MongoClient(DIRECT_REPLICA_URI, {
-            serverSelectionTimeoutMS: 5000,
-          });
-          return directClient.connect();
-        }
-
         global._mongoClientPromise = undefined;
         console.error("[MongoDB] Client connection failed:", err?.message || err);
         console.error("[MongoDB] URI host:", sanitizedUri(uri));
