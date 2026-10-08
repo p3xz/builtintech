@@ -35,9 +35,6 @@ const FOOTER_COLUMNS: FooterColumn[] = [
 
 const FOOTER_SOCIALS: FooterSocial[] = [
   { label: "GitHub", href: "https://github.com/p3xz/builtintech", icon: "github" },
-  { label: "LinkedIn", href: "#", icon: "linkedin" },
-  { label: "X", href: "https://x.com/NamishYadavv", icon: "x" },
-  { label: "YouTube", href: "#", icon: "youtube" },
 ];
 
 export function Footer() {
