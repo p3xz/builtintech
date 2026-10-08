@@ -77,9 +77,7 @@ export function Navbar() {
           className="pointer-events-auto relative z-50 h-11 px-5 flex items-center bg-[#121214] border-b border-r border-zinc-800 rounded-br-[20px] shadow-lg"
         >
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-cyan-400 via-sky-500 to-indigo-500 flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,0.4)]">
-              <span className="font-mono font-black text-[11px] text-black">B</span>
-            </div>
+            <img src="/icon.svg" alt="Built In Tech" className="w-6 h-6 rounded-lg" />
             <span className="font-mono font-bold tracking-tight text-sm text-white">
               Built In <span className="text-cyan-400">Tech</span>
             </span>
@@ -245,9 +243,7 @@ export function Navbar() {
           <div className="flex items-center justify-between gap-2">
             {/* Mobile Logo */}
             <Link href="/" className="flex items-center gap-2 shrink-0">
-              <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-cyan-400 to-indigo-500 flex items-center justify-center">
-                <span className="font-mono font-bold text-xs text-black">B</span>
-              </div>
+              <img src="/icon.svg" alt="Built In Tech" className="w-6 h-6 rounded-lg" />
               <span className="font-mono font-bold text-xs text-white">
                 Built In <span className="text-cyan-400">Tech</span>
               </span>
