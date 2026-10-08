@@ -1,29 +1,67 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowLeft, Award, Download, Printer, ShieldCheck, CheckCircle2 } from "lucide-react";
-import { getCertificateById } from "@/services/certificateService";
+import { ArrowLeft, Award, Printer, Loader2 } from "lucide-react";
 import { ICertificate } from "@/types/learning";
-import { LoadingState, ErrorState } from "@/components/StatusState";
+import { ErrorState } from "@/components/StatusState";
 
 export default function SingleCertificateViewPage() {
   const params = useParams();
+  const router = useRouter();
+  const { data: session, status } = useSession();
   const id = typeof params.id === "string" ? params.id : "";
 
   const [cert, setCert] = useState<ICertificate | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return;
-    const found = getCertificateById(id);
-    if (found) setCert(found);
-    setLoading(false);
-  }, [id]);
+    if (status === "loading") return;
+    if (!session?.user?.id) {
+      router.push("/login");
+      return;
+    }
 
-  if (loading) return <LoadingState message="Rendering certificate..." />;
-  if (!cert) return <ErrorState title="Certificate Not Found" />;
+    async function fetchCert() {
+      try {
+        const res = await fetch("/api/user/certificates");
+        if (res.ok) {
+          const data = await res.json();
+          const list: ICertificate[] = data.certificates || [];
+          const found = list.find(
+            (c) =>
+              c.id === id ||
+              (c as any)._id === id ||
+              c.certificateId?.toLowerCase() === id.toLowerCase()
+          );
+          if (found) setCert(found);
+        }
+      } catch {
+        // error handled
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      fetchCert();
+    }
+  }, [id, session, status, router]);
+
+  if (status === "loading" || loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0b] text-[#f4f4f5] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto" />
+          <p className="text-sm text-zinc-400 font-mono">Rendering certificate…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!cert) return <ErrorState title="Certificate Not Found" message="The requested certificate could not be located in your credentials archive." />;
 
   const handlePrint = () => {
     if (typeof window !== "undefined") {
@@ -116,7 +154,7 @@ export default function SingleCertificateViewPage() {
 
         {/* Disclaimer Note */}
         <p className="text-[10px] font-mono text-zinc-600 print:text-zinc-500">
-          Prototype Verification &bull; Built In Tech Platform &bull; Not an Accredited Degree
+          Platform Verification &bull; Built In Tech &bull; Non-Accredited Milestone
         </p>
       </div>
     </div>

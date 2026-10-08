@@ -1,6 +1,19 @@
 import { ICourse, ICourseModule, ILesson, IModuleQuiz, IUserLearningProgress } from "@/types/learning";
 import { getAllCourses, getCourseById } from "@/data/courses";
 
+/**
+ * Returns an empty progress object for backward compatibility.
+ * @deprecated Use fetchUserProgress() instead.
+ */
+export function getLocalProgress(): IUserLearningProgress {
+  return {
+    enrolledCourseIds: [],
+    completedLessonIds: [],
+    completedModuleIds: [],
+    passedQuizIds: [],
+  };
+}
+
 export async function fetchUserProgress(): Promise<IUserLearningProgress | null> {
   try {
     const res = await fetch("/api/user/progress");

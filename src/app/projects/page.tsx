@@ -15,9 +15,7 @@ import {
   Sparkles,
   ChevronRight,
 } from "lucide-react";
-import { getPublicProjects, createProject } from "@/services/projectService";
 import { IProject } from "@/types/learning";
-import { LoadingState } from "@/components/StatusState";
 
 export default function PublicProjectsPage() {
   const router = useRouter();
@@ -29,22 +27,48 @@ export default function PublicProjectsPage() {
   const [activeModalProject, setActiveModalProject] = useState<IProject | null>(null);
 
   useEffect(() => {
-    const list = getPublicProjects(search, selectedLanguage);
-    setProjects(list);
-    setLoading(false);
+    async function fetchProjects() {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (search) params.set("q", search);
+        if (selectedLanguage !== "all") params.set("language", selectedLanguage);
+        const res = await fetch(`/api/projects/public?${params.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          setProjects(data.projects || []);
+        } else {
+          setProjects([]);
+        }
+      } catch {
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProjects();
   }, [search, selectedLanguage]);
 
-  const handleForkToStudio = (p: IProject) => {
-    const forked = createProject({
-      title: `${p.title} (Fork)`,
-      description: `Forked from @${p.username}`,
-      language: p.language,
-      code: p.code,
-      visibility: "private",
-      tags: p.tags,
-    });
+  const handleForkToStudio = async (p: IProject) => {
+    try {
+      await fetch("/api/user/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `${p.title} (Fork)`,
+          description: `Forked from @${p.username}`,
+          language: p.language,
+          code: p.code,
+          visibility: "private",
+          tags: p.tags || [],
+        }),
+      });
+    } catch {
+      // Non-critical — still navigate
+    }
     router.push("/studio");
   };
+
 
   const languagesList = [
     { id: "all", name: "All Languages" },
@@ -111,7 +135,12 @@ export default function PublicProjectsPage() {
 
       {/* Projects Grid */}
       {loading ? (
-        <LoadingState message="Loading community projects..." />
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center space-y-3">
+            <div className="w-8 h-8 border-2 border-cyan-500/40 border-t-cyan-400 rounded-full animate-spin mx-auto" />
+            <p className="text-xs text-zinc-400 font-mono">Loading community projects…</p>
+          </div>
+        </div>
       ) : projects.length === 0 ? (
         <div className="bg-[#121214] border border-zinc-800 rounded-2xl p-12 text-center max-w-md mx-auto">
           <Globe className="w-10 h-10 text-zinc-600 mx-auto mb-3" />

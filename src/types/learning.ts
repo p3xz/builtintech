@@ -137,7 +137,7 @@ export interface ICourse {
 }
 
 export interface IUserLearningProgress {
-  userId: string;
+  userId?: string;
   currentCourseId?: string;
   currentModuleId?: string;
   currentLessonId?: string;
@@ -145,10 +145,10 @@ export interface IUserLearningProgress {
   completedLessonIds: string[];
   completedModuleIds: string[];
   passedQuizIds: string[];
-  quizScores: Record<string, { score: number; passed: boolean; completedAt: string }>;
+  quizScores?: Record<string, { score: number; passed: boolean; completedAt: string }>;
   experienceLevel?: CourseLevel;
   preferredLanguage?: SupportedLanguage;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface IExecutionStep {

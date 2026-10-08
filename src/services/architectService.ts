@@ -1,28 +1,37 @@
 import { IArchitectMission } from "@/types/learning";
 import { getAllArchitectMissions, getArchitectMissionById } from "@/data/architect-missions";
 
-const ARCHITECT_PROGRESS_KEY = "builtintech_architect_progress_v1";
-
-export function getArchitectMissionsWithStatus(): IArchitectMission[] {
+export async function getArchitectMissionsWithStatus(): Promise<IArchitectMission[]> {
   const missions = getAllArchitectMissions();
-  if (typeof window === "undefined") return missions;
 
-  const completedPhasesMap: Record<string, number[]> = JSON.parse(
-    localStorage.getItem(ARCHITECT_PROGRESS_KEY) || "{}"
-  );
+  try {
+    const res = await fetch("/api/user/progress");
+    if (res.ok) {
+      const data = await res.json();
+      const completedPhasesMap: Record<string, number[]> = data.progress?.architectCompletedPhases || {};
 
-  return missions.map((m) => {
-    const donePhases = completedPhasesMap[m.id] || [];
-    const phases = m.phases.map((p) => ({
-      ...p,
-      isCompleted: donePhases.includes(p.phaseNumber),
-    }));
-    return {
-      ...m,
-      phases,
-      isCompleted: phases.every((p) => p.isCompleted),
-    };
-  });
+      return missions.map((m) => {
+        const donePhases = completedPhasesMap[m.id] || [];
+        const phases = m.phases.map((p) => ({
+          ...p,
+          isCompleted: donePhases.includes(p.phaseNumber),
+        }));
+        return {
+          ...m,
+          phases,
+          isCompleted: phases.every((p) => p.isCompleted),
+        };
+      });
+    }
+  } catch {
+    // Handled
+  }
+
+  return missions.map((m) => ({
+    ...m,
+    isCompleted: false,
+    phases: m.phases.map((p) => ({ ...p, isCompleted: false })),
+  }));
 }
 
 export function validateArchitectPhase(
@@ -63,13 +72,13 @@ export function validateArchitectPhase(
 
   const allPassed = testResults.every((t) => t.passed);
 
-  if (allPassed && typeof window !== "undefined") {
-    const map: Record<string, number[]> = JSON.parse(localStorage.getItem(ARCHITECT_PROGRESS_KEY) || "{}");
-    if (!map[missionId]) map[missionId] = [];
-    if (!map[missionId].includes(phaseNumber)) {
-      map[missionId].push(phaseNumber);
-      localStorage.setItem(ARCHITECT_PROGRESS_KEY, JSON.stringify(map));
-    }
+  if (allPassed) {
+    // Record to server
+    fetch("/api/user/progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "complete-architect-phase", missionId, phaseNumber }),
+    }).catch(() => {});
   }
 
   return {

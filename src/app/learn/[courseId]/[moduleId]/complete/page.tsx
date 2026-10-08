@@ -13,7 +13,6 @@ import {
   Zap,
 } from "lucide-react";
 import { getCourseById } from "@/data/courses";
-import { getLocalProgress } from "@/services/courseService";
 import { ICourse, ICourseModule } from "@/types/learning";
 import { LoadingState, ErrorState } from "@/components/StatusState";
 

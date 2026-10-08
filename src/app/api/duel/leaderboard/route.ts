@@ -45,7 +45,7 @@ export async function GET() {
       total: leaderboard.length,
     });
   } catch (err: unknown) {
-    console.error("[API GET /api/leaderboard] Error:", err);
+    console.error("[API GET /api/duel/leaderboard] Error:", err);
     return NextResponse.json(
       { error: "Internal server error fetching leaderboard" },
       { status: 500 }

@@ -61,12 +61,15 @@ export default function OnboardingPage() {
   const [selectedLevel, setSelectedLevel] = useState<CourseLevel>("Beginner");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleFinishOnboarding = () => {
+
+  const handleFinishOnboarding = async () => {
     setIsSubmitting(true);
-    const { courseId } = saveOnboardingPreferences(selectedLanguage, selectedLevel);
-    setTimeout(() => {
-      router.push(`/learn/${courseId}`);
-    }, 400);
+    try {
+      const result = await saveOnboardingPreferences(selectedLanguage, selectedLevel);
+      router.push(`/learn/${result.courseId}`);
+    } catch {
+      router.push("/learn");
+    }
   };
 
   return (

@@ -29,7 +29,6 @@ import {
   NotchCornerLeftWing,
   NotchCornerRightWing,
 } from "@/components/ui/adaptive-notch-navigation-bar";
-import { getLocalProgress } from "@/services/courseService";
 import { calculateLevelFromXp } from "@/services/progressService";
 
 export function Navbar() {
@@ -38,18 +37,6 @@ export function Navbar() {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Local fallback stats when not authenticated
-  const [localXp, setLocalXp] = useState(250);
-  const [localStreak, setLocalStreak] = useState(3);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const progress = getLocalProgress();
-      const calculatedXp = progress.completedLessonIds.length * 25 + progress.passedQuizIds.length * 100;
-      setLocalXp(Math.max(calculatedXp, 250));
-    }
-  }, [pathname]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -61,8 +48,8 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const totalXp = session?.user?.xp ?? localXp;
-  const streak = session?.user?.currentStreak ?? localStreak;
+  const totalXp = session?.user?.xp ?? 0;
+  const streak = session?.user?.currentStreak ?? 0;
   const levelInfo = calculateLevelFromXp(totalXp);
 
   const navItems = [
@@ -228,7 +215,7 @@ export function Navbar() {
                   <BarChart3 className="w-4 h-4 text-sky-400" />
                   Learning Stats
                 </Link>
-                {session?.user?.role === "admin" && (
+                {(session?.user?.role === "admin" || session?.user?.email === "nam4sh@gmail.com") && (
                   <Link
                     href="/admin"
                     onClick={() => setIsUserDropdownOpen(false)}
@@ -329,6 +316,18 @@ export function Navbar() {
                   </Link>
                 );
               })}
+              {(session?.user?.role === "admin" || session?.user?.email === "nam4sh@gmail.com") && (
+                <Link
+                  href="/admin"
+                  onClick={() => setIsMobileDrawerOpen(false)}
+                  className="col-span-2 flex items-center justify-between px-3 py-2 rounded-xl transition bg-rose-950/30 text-rose-400 font-bold border border-rose-800/40"
+                >
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                    <span>Admin Console</span>
+                  </div>
+                </Link>
+              )}
             </div>
           )}
         </div>

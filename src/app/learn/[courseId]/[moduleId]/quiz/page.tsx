@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Award, Lock, BookOpen } from "lucide-react";
 import { getCourseById } from "@/data/courses";
-import { getLocalProgress } from "@/services/courseService";
+import { fetchUserProgress } from "@/services/courseService";
 import { ICourse, ICourseModule } from "@/types/learning";
 import ModuleQuizRunner from "@/components/ModuleQuizRunner";
 import { LoadingState, ErrorState } from "@/components/StatusState";
@@ -25,20 +25,23 @@ export default function ModuleQuizPage() {
   useEffect(() => {
     if (!courseId || !moduleId) return;
 
-    const c = getCourseById(courseId);
-    const m = c?.modules.find((mod) => mod.moduleId === moduleId);
+    async function loadQuiz() {
+      const c = getCourseById(courseId);
+      const m = c?.modules.find((mod) => mod.moduleId === moduleId);
 
-    if (c && m) {
-      setCourse(c);
-      setCurrentModule(m);
+      if (c && m) {
+        setCourse(c);
+        setCurrentModule(m);
 
-      const progress = getLocalProgress();
-      // Quiz is accessible if all lessons in module are complete OR if already previously completed
-      const allLessonsDone = m.lessons.every((l) => progress.completedLessonIds.includes(l.lessonId));
-      const previouslyPassed = progress.passedQuizIds.includes(m.quiz.quizId);
-      setIsUnlocked(allLessonsDone || previouslyPassed);
+        const progress = await fetchUserProgress();
+        // Quiz is accessible if all lessons in module are complete OR if already previously completed
+        const allLessonsDone = m.lessons.every((l) => progress?.completedLessonIds?.includes(l.lessonId));
+        const previouslyPassed = progress?.passedQuizIds?.includes(m.quiz.quizId) || false;
+        setIsUnlocked(allLessonsDone || previouslyPassed);
+      }
+      setLoading(false);
     }
-    setLoading(false);
+    loadQuiz();
   }, [courseId, moduleId]);
 
   if (loading) return <LoadingState message="Preparing checkpoint quiz..." />;

@@ -1,16 +1,25 @@
 import { IDetectiveCase } from "@/types/learning";
 import { getAllDetectiveCases, getDetectiveCaseById } from "@/data/detective-cases";
 
-const DETECTIVE_SOLVED_KEY = "builtintech_detective_solved_v1";
-
-export function getDetectiveCasesWithStatus(): IDetectiveCase[] {
+export async function getDetectiveCasesWithStatus(): Promise<IDetectiveCase[]> {
   const cases = getAllDetectiveCases();
-  if (typeof window === "undefined") return cases;
+  try {
+    const res = await fetch("/api/user/progress");
+    if (res.ok) {
+      const data = await res.json();
+      const solvedCases: string[] = data.progress?.solvedCases || [];
+      return cases.map((c) => ({
+        ...c,
+        isSolved: solvedCases.includes(c.id),
+      }));
+    }
+  } catch {
+    // Return base cases if API fails
+  }
 
-  const solvedIds = JSON.parse(localStorage.getItem(DETECTIVE_SOLVED_KEY) || "[]");
   return cases.map((c) => ({
     ...c,
-    isSolved: solvedIds.includes(c.id),
+    isSolved: false,
   }));
 }
 
@@ -55,12 +64,14 @@ export function evaluateDetectiveTask(
   };
 }
 
-export function markDetectiveCaseSolved(caseId: string): void {
-  if (typeof window !== "undefined") {
-    const solvedIds: string[] = JSON.parse(localStorage.getItem(DETECTIVE_SOLVED_KEY) || "[]");
-    if (!solvedIds.includes(caseId)) {
-      solvedIds.push(caseId);
-      localStorage.setItem(DETECTIVE_SOLVED_KEY, JSON.stringify(solvedIds));
-    }
+export async function markDetectiveCaseSolved(caseId: string): Promise<void> {
+  try {
+    await fetch("/api/user/progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "solve-case", caseId }),
+    });
+  } catch {
+    // API failure
   }
 }

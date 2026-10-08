@@ -12,9 +12,17 @@ export default function DetectiveHubPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const list = getDetectiveCasesWithStatus();
-    setCases(list);
-    setLoading(false);
+    async function loadCases() {
+      try {
+        const list = await getDetectiveCasesWithStatus();
+        setCases(list);
+      } catch {
+        // Handled
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadCases();
   }, []);
 
   return (

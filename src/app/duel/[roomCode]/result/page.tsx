@@ -354,11 +354,21 @@ export default function DuelResultPage() {
         </div>
       </div>
 
-      {/* Return to Lobby CTA */}
-      <div className="text-center pt-4 pb-12 border-t border-zinc-800">
-        <Link href="/">
-          <button className="px-8 py-3.5 bg-white hover:bg-zinc-200 text-black font-semibold rounded-lg text-sm font-mono transition">
-            Back to Lobby
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6 pb-12 border-t border-zinc-800">
+        <Link href="/duel" className="w-full sm:w-auto">
+          <button className="w-full sm:w-auto px-8 py-3.5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl text-xs font-mono transition cursor-pointer shadow-lg shadow-cyan-500/20">
+            ⚔️ Play Again
+          </button>
+        </Link>
+        <Link href="/leaderboard" className="w-full sm:w-auto">
+          <button className="w-full sm:w-auto px-6 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl text-xs font-mono transition cursor-pointer">
+            🏆 Leaderboard
+          </button>
+        </Link>
+        <Link href="/" className="w-full sm:w-auto">
+          <button className="w-full sm:w-auto px-6 py-3.5 bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 text-zinc-300 font-semibold rounded-xl text-xs font-mono transition cursor-pointer">
+            ← Back to Dashboard
           </button>
         </Link>
       </div>

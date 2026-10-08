@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, GraduationCap, Clock, Zap, BookOpen, ChevronRight, CheckCircle2, ArrowRight } from "lucide-react";
 import { getAllCourses } from "@/data/courses";
-import { getLocalProgress, getDecoratedCourse } from "@/services/courseService";
+import { fetchUserProgress, getDecoratedCourse } from "@/services/courseService";
 import { ICourse, SupportedLanguage, CourseLevel } from "@/types/learning";
 import { LoadingState } from "@/components/StatusState";
 
@@ -16,11 +16,14 @@ export default function CoursesDirectoryPage() {
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
 
   useEffect(() => {
-    const rawCourses = getAllCourses();
-    const progress = getLocalProgress();
-    const decorated = rawCourses.map((c) => getDecoratedCourse(c, progress));
-    setCourses(decorated);
-    setLoading(false);
+    async function loadCourses() {
+      const rawCourses = getAllCourses();
+      const progress = await fetchUserProgress();
+      const decorated = rawCourses.map((c) => getDecoratedCourse(c, progress));
+      setCourses(decorated);
+      setLoading(false);
+    }
+    loadCourses();
   }, []);
 
   const filteredCourses = courses.filter((c) => {

@@ -20,32 +20,13 @@ export async function POST(request: NextRequest) {
 
     // Authenticate user
     const authResult = await getAuthenticatedUser();
-    let user = authResult.user;
-
-    // If guest (not logged in), create or use temporary guest profile for the submission session
-    if (!user) {
-      user = await User.findOne({ username: "guest_coder" });
-      if (!user) {
-        user = await User.create({
-          username: "guest_coder",
-          usernameNormalized: "guest_coder",
-          displayName: "Guest Coder",
-          provider: "credentials",
-          role: "user",
-          xp: 0,
-          currentStreak: 0,
-          longestStreak: 0,
-          solvedProblems: [],
-          attemptedProblems: [],
-          totalSubmissions: 0,
-          acceptedSubmissions: 0,
-          duelRating: 1000,
-          duelsPlayed: 0,
-          duelsWon: 0,
-          duelsLost: 0,
-        });
-      }
+    if (!authResult.user) {
+      return NextResponse.json(
+        { error: "Authentication required to submit solutions. Please sign in with Google." },
+        { status: 401 }
+      );
     }
+    const user = authResult.user;
 
     const evaluation = await evaluateAndRecordSubmission(
       user,

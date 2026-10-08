@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Editor from "@monaco-editor/react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import {
   Play,
   Save,
@@ -17,13 +19,8 @@ import {
   Sparkles,
   ExternalLink,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
-import {
-  getUserProjects,
-  createProject,
-  updateProject,
-  deleteProject,
-} from "@/services/projectService";
 import { IProject, SupportedLanguage } from "@/types/learning";
 import ExecutionVisualizer from "@/components/ExecutionVisualizer";
 
@@ -64,8 +61,12 @@ console.log(\`Learner \${learner.name} has \${learner.xp} XP\`);`,
 };
 
 export default function CodeStudioPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
   const [projects, setProjects] = useState<IProject[]>([]);
   const [activeProject, setActiveProject] = useState<IProject | null>(null);
+  const [projectsLoading, setProjectsLoading] = useState(true);
 
   // Editor states
   const [title, setTitle] = useState("My Algorithm Experiment");
@@ -80,17 +81,32 @@ export default function CodeStudioPage() {
   const [showVisualizer, setShowVisualizer] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
 
-  const refreshProjects = () => {
-    const projs = getUserProjects();
-    setProjects(projs);
-    if (!activeProject && projs.length > 0) {
-      loadProject(projs[0]);
+  const refreshProjects = async (firstLoad = false) => {
+    try {
+      const res = await fetch("/api/user/projects");
+      if (res.ok) {
+        const data = await res.json();
+        const projs: IProject[] = data.projects || [];
+        setProjects(projs);
+        if (firstLoad && projs.length > 0) {
+          loadProject(projs[0]);
+        }
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setProjectsLoading(false);
     }
   };
 
   useEffect(() => {
-    refreshProjects();
-  }, []);
+    if (status === "loading") return;
+    if (!session?.user?.id) {
+      router.push("/login");
+      return;
+    }
+    refreshProjects(true);
+  }, [session, status]);
 
   const loadProject = (p: IProject) => {
     setActiveProject(p);
@@ -102,64 +118,88 @@ export default function CodeStudioPage() {
     setStdout("");
   };
 
-  const handleCreateNew = () => {
-    const newProj = createProject({
+  const handleCreateNew = async () => {
+    const newProjData = {
       title: "Untitled Project",
       description: "My new sandbox script",
       language: "python",
       code: DEFAULT_STARTER.python,
       visibility: "private",
-    });
-    setActiveProject(newProj);
-    setTitle(newProj.title);
-    setDescription(newProj.description);
-    setLanguage(newProj.language);
-    setCode(newProj.code);
-    setVisibility(newProj.visibility);
-    setStdout("");
-    refreshProjects();
-  };
-
-  const handleSave = () => {
-    if (activeProject) {
-      updateProject(activeProject.id, {
-        title,
-        description,
-        language,
-        code,
-        visibility,
+    };
+    try {
+      const res = await fetch("/api/user/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newProjData),
       });
-      setSaveStatus("Saved successfully ✓");
-      setTimeout(() => setSaveStatus(""), 2000);
-      refreshProjects();
-    } else {
-      const created = createProject({
-        title,
-        description,
-        language,
-        code,
-        visibility,
-      });
-      setActiveProject(created);
-      setSaveStatus("Created & saved ✓");
-      setTimeout(() => setSaveStatus(""), 2000);
-      refreshProjects();
-    }
-  };
-
-  const handleDelete = () => {
-    if (activeProject && confirm("Are you sure you want to delete this project?")) {
-      deleteProject(activeProject.id);
-      setActiveProject(null);
-      const remaining = getUserProjects();
-      if (remaining.length > 0) {
-        loadProject(remaining[0]);
-      } else {
-        handleCreateNew();
+      if (res.ok) {
+        const data = await res.json();
+        const newProj = data.project;
+        setActiveProject(newProj);
+        setTitle(newProj.title);
+        setDescription(newProj.description);
+        setLanguage(newProj.language);
+        setCode(newProj.code);
+        setVisibility(newProj.visibility);
+        setStdout("");
+        await refreshProjects();
       }
-      refreshProjects();
+    } catch {
+      // silently fail
     }
   };
+
+  const handleSave = async () => {
+    const payload = { title, description, language, code, visibility };
+    try {
+      if (activeProject) {
+        await fetch("/api/user/projects", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: activeProject.id, ...payload }),
+        });
+        setSaveStatus("Saved successfully ✓");
+      } else {
+        const res = await fetch("/api/user/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setActiveProject(data.project);
+        }
+        setSaveStatus("Created & saved ✓");
+      }
+      setTimeout(() => setSaveStatus(""), 2000);
+      await refreshProjects();
+    } catch {
+      setSaveStatus("Save failed. Please try again.");
+      setTimeout(() => setSaveStatus(""), 3000);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (activeProject && confirm("Are you sure you want to delete this project?")) {
+      try {
+        await fetch("/api/user/projects", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: activeProject.id }),
+        });
+        setActiveProject(null);
+        setTitle("My Algorithm Experiment");
+        setDescription("Testing algorithmic solutions");
+        setLanguage("python");
+        setCode(DEFAULT_STARTER.python);
+        setVisibility("private");
+        await refreshProjects();
+      } catch {
+        // silently fail
+      }
+    }
+  };
+
 
   const handleRunCode = async () => {
     setIsRunning(true);
@@ -182,6 +222,19 @@ export default function CodeStudioPage() {
       setIsRunning(false);
     }
   };
+
+
+  // Show loading state while auth resolves
+  if (status === "loading" || (status === "authenticated" && projectsLoading)) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0b] text-[#f4f4f5] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto" />
+          <p className="text-sm text-zinc-400 font-mono">Loading Code Studio…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-[#f4f4f5] font-sans pb-12">

@@ -1,6 +1,15 @@
 import { IDailyMission, CourseLevel, SupportedLanguage } from "@/types/learning";
 import { getCourseByLanguageAndLevel } from "@/data/courses";
 
+/**
+ * No-op stub — mission progress is now tracked server-side.
+ * @deprecated
+ */
+export async function incrementMissionProgress(): Promise<void> {
+  // Mission progress is tracked by the server via /api/user/progress
+  // This stub exists for backward compatibility during migration
+}
+
 export function calculateLevelFromXp(xp: number): {
   level: number;
   xpInCurrentLevel: number;

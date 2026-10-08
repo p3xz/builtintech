@@ -20,11 +20,9 @@ import {
   Layers,
   Search,
 } from "lucide-react";
-import { getAllAchievements } from "@/data/achievements";
-import { getUserCertificates } from "@/services/certificateService";
-import { getUserProjects } from "@/services/projectService";
 import { calculateLevelFromXp } from "@/services/progressService";
 import { IAchievement, ICertificate, IProject } from "@/types/learning";
+
 
 interface ProfileData {
   user: {
@@ -89,47 +87,21 @@ export default function UserProfilePage() {
         if (res.ok) {
           const profileJson = await res.json();
           setData(profileJson);
+        } else if (res.status === 404) {
+          setError("User not found.");
         } else {
-          // Fallback mock profile for demo guest
-          setData({
-            user: {
-              id: "local-user",
-              username: rawUsername,
-              displayName: rawUsername.charAt(0).toUpperCase() + rawUsername.slice(1),
-              xp: 850,
-              currentStreak: 4,
-              longestStreak: 7,
-              solvedCount: 8,
-              totalSubmissions: 14,
-              acceptedSubmissions: 10,
-              acceptanceRate: 71,
-              duelRating: 1100,
-              duelsPlayed: 5,
-              duelsWon: 4,
-              duelsLost: 1,
-              winRate: 80,
-              createdAt: "2026-10-01T00:00:00Z",
-            },
-            solvedQuestions: [
-              { problemId: "001", title: "Palindrome Number", difficulty: "Easy", xp: 50, tags: ["Math", "String"] },
-              { problemId: "002", title: "FizzBuzz", difficulty: "Easy", xp: 50, tags: ["Math"] },
-              { problemId: "003", title: "Two Sum", difficulty: "Easy", xp: 100, tags: ["Array"] },
-            ],
-            recentSubmissions: [],
-          });
+          setError("Failed to load user profile.");
         }
       } catch {
-        setError("Failed to load user profile.");
+        setError("Failed to load user profile. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfile();
-    setAchievements(getAllAchievements().filter((a) => a.unlocked));
-    setCertificates(getUserCertificates());
-    setProjects(getUserProjects());
   }, [rawUsername]);
+
 
   if (loading) {
     return (

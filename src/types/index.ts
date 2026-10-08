@@ -162,14 +162,6 @@ export interface IDuelRoom {
   updatedAt: Date;
 }
 
-export interface IEmailOtp {
-  _id: string;
-  email: string;
-  otpHash: string;
-  attempts: number;
-  expiresAt: Date;
-  createdAt: Date;
-}
-
 export * from "./learning";
+
 

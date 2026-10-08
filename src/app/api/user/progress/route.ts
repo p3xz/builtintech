@@ -205,6 +205,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, progress: learning });
     }
 
+    // 5. Complete Architect Phase
+    if (action === "complete-architect-phase") {
+      if (missionId && typeof phaseNumber === "number") {
+        const phasesMap = learning.architectCompletedPhases || {};
+        const missionPhases = phasesMap[missionId] || [];
+        if (!missionPhases.includes(phaseNumber)) {
+          missionPhases.push(phaseNumber);
+          phasesMap[missionId] = missionPhases;
+          learning.architectCompletedPhases = phasesMap;
+          learning.markModified("architectCompletedPhases");
+          await User.findByIdAndUpdate(session.user.id, { $inc: { xp: 100 } });
+          await learning.save();
+        }
+      }
+      return NextResponse.json({ success: true, progress: learning });
+    }
+
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error) {
     console.error("Error updating user progress:", error);

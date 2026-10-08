@@ -1,12 +1,11 @@
 import NextAuth, { DefaultSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
 import { connectToDatabase } from "./mongodb";
 import { User } from "@/models/User";
-import { EmailOtp } from "@/models/EmailOtp";
-import { hashOtp } from "./email";
 import { generateUniqueUsername } from "./username";
 import { IUser } from "@/types";
+
+const ADMIN_EMAIL = "nam4sh@gmail.com";
 
 declare module "next-auth" {
   interface Session {
@@ -39,92 +38,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
-    CredentialsProvider({
-      id: "email-otp",
-      name: "Email OTP",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        otp: { label: "OTP", type: "text" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.otp) {
-          throw new Error("Email and verification code are required");
-        }
-
-        const email = String(credentials.email).toLowerCase().trim();
-        const otp = String(credentials.otp).trim();
-
-        await connectToDatabase();
-
-        // 1. Verify OTP record
-        const incomingHash = hashOtp(otp, email);
-        const otpRecord = await EmailOtp.findOne({ email }).sort({ createdAt: -1 });
-
-        if (!otpRecord) {
-          throw new Error("No pending verification code found for this email");
-        }
-
-        if (otpRecord.expiresAt < new Date()) {
-          await EmailOtp.deleteMany({ email });
-          throw new Error("Verification code has expired. Please request a new one.");
-        }
-
-        if (otpRecord.attempts >= 3) {
-          await EmailOtp.deleteMany({ email });
-          throw new Error("Too many failed attempts. Please request a new code.");
-        }
-
-        if (otpRecord.otpHash !== incomingHash) {
-          otpRecord.attempts += 1;
-          await otpRecord.save();
-          throw new Error("Invalid verification code");
-        }
-
-        // Clean up verified OTP
-        await EmailOtp.deleteMany({ email });
-
-        // 2. Find or create user
-        let dbUser = await User.findOne({ email });
-
-        if (!dbUser) {
-          const rawName = email.split("@")[0] || "coder";
-          const username = await generateUniqueUsername(rawName);
-
-          dbUser = await User.create({
-            username,
-            usernameNormalized: username.toLowerCase(),
-            displayName: rawName,
-            email,
-            provider: "email",
-            role: "user",
-            xp: 0,
-            currentStreak: 0,
-            longestStreak: 0,
-            solvedProblems: [],
-            attemptedProblems: [],
-            totalSubmissions: 0,
-            acceptedSubmissions: 0,
-            duelRating: 1000,
-            duelsPlayed: 0,
-            duelsWon: 0,
-            duelsLost: 0,
-            preferences: {
-              editorFontSize: 14,
-              minimap: false,
-              defaultLanguage: "python",
-              reducedMotion: false,
-            },
-          });
-        }
-
-        return {
-          id: dbUser._id.toString(),
-          email: dbUser.email,
-          name: dbUser.displayName,
-          username: dbUser.username,
-        };
-      },
-    }),
   ],
   session: {
     strategy: "jwt",
@@ -145,6 +58,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             ],
           });
 
+          const isInitialAdmin = userEmail === ADMIN_EMAIL;
+
           if (!dbUser) {
             const rawName = user.name || userEmail.split("@")[0] || "coder";
             const username = await generateUniqueUsername(rawName);
@@ -157,7 +72,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               image: user.image || undefined,
               provider: "google",
               providerAccountId: account.providerAccountId,
-              role: "user",
+              role: isInitialAdmin ? "admin" : "user",
               xp: 0,
               currentStreak: 0,
               longestStreak: 0,
@@ -177,11 +92,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               },
             });
           } else {
-            // Update providerAccountId if needed
+            // Update providerAccountId or admin role if needed
+            let modified = false;
             if (dbUser.provider !== "google" || !dbUser.providerAccountId) {
               dbUser.provider = "google";
               dbUser.providerAccountId = account.providerAccountId;
-              if (user.image) dbUser.image = user.image;
+              modified = true;
+            }
+            if (user.image && dbUser.image !== user.image) {
+              dbUser.image = user.image;
+              modified = true;
+            }
+            if (isInitialAdmin && dbUser.role !== "admin") {
+              dbUser.role = "admin";
+              modified = true;
+            }
+            if (modified) {
               await dbUser.save();
             }
           }
@@ -204,15 +130,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       // Sync user data on JWT lookup
-      if (token.userId) {
+      if (token.userId || token.email) {
         try {
           await connectToDatabase();
-          const dbUser = await User.findById(token.userId).lean();
+          const query = token.userId ? { _id: token.userId } : { email: token.email?.toLowerCase().trim() };
+          const dbUser = await User.findOne(query).lean();
           if (dbUser) {
+            const isInitialAdmin = dbUser.email?.toLowerCase().trim() === ADMIN_EMAIL;
             token.userId = dbUser._id.toString();
             token.username = dbUser.username;
             token.displayName = dbUser.displayName;
-            token.role = dbUser.role;
+            token.role = isInitialAdmin ? "admin" : dbUser.role;
             token.xp = dbUser.xp;
             token.currentStreak = dbUser.currentStreak;
             token.longestStreak = dbUser.longestStreak;
@@ -232,10 +160,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (token && session.user) {
+        const isInitialAdmin = session.user.email?.toLowerCase().trim() === ADMIN_EMAIL;
         session.user.id = (token.userId as string) || "";
         session.user.username = (token.username as string) || "";
         session.user.displayName = (token.displayName as string) || (token.username as string) || "";
-        session.user.role = (token.role as "user" | "admin") || "user";
+        session.user.role = isInitialAdmin ? "admin" : ((token.role as "user" | "admin") || "user");
         session.user.xp = (token.xp as number) || 0;
         session.user.currentStreak = (token.currentStreak as number) || 0;
         session.user.longestStreak = (token.longestStreak as number) || 0;
@@ -277,6 +206,11 @@ export async function getAuthenticatedUser(): Promise<{
     const dbUser = await User.findById(session.user.id);
     if (!dbUser) {
       return { user: null, error: "User account not found.", status: 404 };
+    }
+
+    if (dbUser.email?.toLowerCase().trim() === ADMIN_EMAIL && dbUser.role !== "admin") {
+      dbUser.role = "admin";
+      await dbUser.save();
     }
 
     return { user: dbUser, status: 200 };

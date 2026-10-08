@@ -19,7 +19,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { getCourseById } from "@/data/courses";
-import { getLocalProgress, getDecoratedCourse } from "@/services/courseService";
+import { fetchUserProgress, getDecoratedCourse } from "@/services/courseService";
 import { ICourse, ICourseModule, ILesson } from "@/types/learning";
 import { LoadingState, ErrorState } from "@/components/StatusState";
 
@@ -34,17 +34,20 @@ export default function CourseOverviewPage() {
 
   useEffect(() => {
     if (!courseId) return;
-    const rawCourse = getCourseById(courseId);
-    if (!rawCourse) {
-      setError("Course not found.");
-      setLoading(false);
-      return;
-    }
+    async function loadCourse() {
+      const rawCourse = getCourseById(courseId);
+      if (!rawCourse) {
+        setError("Course not found.");
+        setLoading(false);
+        return;
+      }
 
-    const progress = getLocalProgress();
-    const decorated = getDecoratedCourse(rawCourse, progress);
-    setCourse(decorated);
-    setLoading(false);
+      const progress = await fetchUserProgress();
+      const decorated = getDecoratedCourse(rawCourse, progress);
+      setCourse(decorated);
+      setLoading(false);
+    }
+    loadCourse();
   }, [courseId]);
 
   if (loading) return <LoadingState message="Loading course roadmap..." />;

@@ -20,8 +20,7 @@ import {
   Layers,
 } from "lucide-react";
 import { getCourseById } from "@/data/courses";
-import { markLessonCompleted, getLocalProgress } from "@/services/courseService";
-import { incrementMissionProgress } from "@/services/progressService";
+import { markLessonCompleted, fetchUserProgress } from "@/services/courseService";
 import { ICourse, ICourseModule, ILesson } from "@/types/learning";
 import ExecutionVisualizer from "@/components/ExecutionVisualizer";
 import { LoadingState, ErrorState } from "@/components/StatusState";
@@ -54,25 +53,28 @@ export default function LessonDetailPage() {
   useEffect(() => {
     if (!courseId || !moduleId || !lessonId) return;
 
-    const foundCourse = getCourseById(courseId);
-    if (!foundCourse) {
+    async function loadLesson() {
+      const foundCourse = getCourseById(courseId);
+      if (!foundCourse) {
+        setLoading(false);
+        return;
+      }
+
+      const foundModule = foundCourse.modules.find((m) => m.moduleId === moduleId);
+      const foundLesson = foundModule?.lessons.find((l) => l.lessonId === lessonId);
+
+      if (foundCourse && foundModule && foundLesson) {
+        setCourse(foundCourse);
+        setCurrentModule(foundModule);
+        setLesson(foundLesson);
+        setCode(foundLesson.tryIt.starterCode || "");
+
+        const progress = await fetchUserProgress();
+        setIsCompleted(progress?.completedLessonIds.includes(lessonId) || false);
+      }
       setLoading(false);
-      return;
     }
-
-    const foundModule = foundCourse.modules.find((m) => m.moduleId === moduleId);
-    const foundLesson = foundModule?.lessons.find((l) => l.lessonId === lessonId);
-
-    if (foundCourse && foundModule && foundLesson) {
-      setCourse(foundCourse);
-      setCurrentModule(foundModule);
-      setLesson(foundLesson);
-      setCode(foundLesson.tryIt.starterCode || "");
-
-      const progress = getLocalProgress();
-      setIsCompleted(progress.completedLessonIds.includes(lessonId));
-    }
-    setLoading(false);
+    loadLesson();
   }, [courseId, moduleId, lessonId]);
 
   if (loading) return <LoadingState message="Loading lesson..." />;
@@ -107,7 +109,6 @@ export default function LessonDetailPage() {
         });
         setIsCompleted(true);
         await markLessonCompleted(course.courseId, currentModule.moduleId, lesson.lessonId);
-        incrementMissionProgress();
       } else {
         setStdout("Output mismatch or incomplete code.");
         setFeedback({

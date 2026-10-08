@@ -12,9 +12,17 @@ export default function ArchitectHubPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const list = getArchitectMissionsWithStatus();
-    setMissions(list);
-    setLoading(false);
+    async function loadMissions() {
+      try {
+        const list = await getArchitectMissionsWithStatus();
+        setMissions(list);
+      } catch {
+        // Handled
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadMissions();
   }, []);
 
   return (
