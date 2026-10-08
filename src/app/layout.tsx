@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { CookieConsent } from "@/components/layout/CookieConsent";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://built-in-tech.vercel.app"),
   title: "Built In Tech — Interactive Coding Education & 1v1 Arena",
   description: "Learn programming step-by-step with structured modules, practice in sandboxes, solve detective cases, and compete in AI-refereed 1v1 live coding duels.",
   openGraph: {
