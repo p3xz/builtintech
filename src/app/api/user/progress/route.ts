@@ -5,6 +5,29 @@ import { UserLearning } from "@/models/UserLearning";
 import { User } from "@/models/User";
 import { getCourseById } from "@/data/courses";
 import { issueCertificateForCourse } from "@/services/certificateService";
+import mongoose from "mongoose";
+
+async function findUserSafe(userId: string, email?: string | null) {
+  const orList: any[] = [{ providerAccountId: userId }];
+  if (mongoose.Types.ObjectId.isValid(userId)) {
+    orList.push({ _id: new mongoose.Types.ObjectId(userId) });
+  }
+  if (email) {
+    orList.push({ email });
+  }
+  return await User.findOne({ $or: orList });
+}
+
+async function updateUserXp(userId: string, email: string | null | undefined, xpAmount: number) {
+  const orList: any[] = [{ providerAccountId: userId }];
+  if (mongoose.Types.ObjectId.isValid(userId)) {
+    orList.push({ _id: new mongoose.Types.ObjectId(userId) });
+  }
+  if (email) {
+    orList.push({ email });
+  }
+  return await User.findOneAndUpdate({ $or: orList }, { $inc: { xp: xpAmount } }, { new: true });
+}
 
 export async function GET() {
   const session = await auth();
@@ -52,13 +75,7 @@ export async function GET() {
       }
     }
 
-    let dbUser = null;
-    try {
-      dbUser = await User.findById(session.user.id);
-    } catch {
-      // session.user.id may be the OAuth provider ID, not a Mongo ObjectId
-      dbUser = await User.findOne({ $or: [{ providerAccountId: session.user.id }, { email: session.user.email }] });
-    }
+    const dbUser = await findUserSafe(session.user.id, session.user.email);
 
     return NextResponse.json({
       success: true,
@@ -139,7 +156,7 @@ export async function POST(req: NextRequest) {
       if (!learning.completedLessonIds.includes(lessonId)) {
         learning.completedLessonIds.push(lessonId);
         // Increment real XP
-        await User.findByIdAndUpdate(session.user.id, { $inc: { xp: 25 } });
+        await updateUserXp(session.user.id, session.user.email, 25);
       }
 
       learning.currentCourseId = courseId;
@@ -160,7 +177,7 @@ export async function POST(req: NextRequest) {
       );
 
       await learning.save();
-      const updatedUser = await User.findById(session.user.id);
+      const updatedUser = await findUserSafe(session.user.id, session.user.email);
 
       return NextResponse.json({
         success: true,
@@ -196,7 +213,7 @@ export async function POST(req: NextRequest) {
       if (passed) {
         if (!learning.passedQuizIds.includes(quiz.quizId)) {
           learning.passedQuizIds.push(quiz.quizId);
-          await User.findByIdAndUpdate(session.user.id, { $inc: { xp: quiz.xpReward } });
+          await updateUserXp(session.user.id, session.user.email, quiz.xpReward);
         }
         if (!learning.completedModuleIds.includes(moduleId)) {
           learning.completedModuleIds.push(moduleId);
@@ -212,7 +229,7 @@ export async function POST(req: NextRequest) {
         await learning.save();
       }
 
-      const updatedUser = await User.findById(session.user.id);
+      const updatedUser = await findUserSafe(session.user.id, session.user.email);
 
       return NextResponse.json({
         success: true,
@@ -231,7 +248,7 @@ export async function POST(req: NextRequest) {
     if (action === "solve-case") {
       if (caseId && !learning.solvedCases.includes(caseId)) {
         learning.solvedCases.push(caseId);
-        await User.findByIdAndUpdate(session.user.id, { $inc: { xp: 150 } });
+        await updateUserXp(session.user.id, session.user.email, 150);
         await learning.save();
       }
       return NextResponse.json({ success: true, progress: learning });
@@ -247,7 +264,7 @@ export async function POST(req: NextRequest) {
           phasesMap[missionId] = missionPhases;
           learning.architectCompletedPhases = phasesMap;
           learning.markModified("architectCompletedPhases");
-          await User.findByIdAndUpdate(session.user.id, { $inc: { xp: 100 } });
+          await updateUserXp(session.user.id, session.user.email, 100);
           await learning.save();
         }
       }

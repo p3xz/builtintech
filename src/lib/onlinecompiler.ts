@@ -15,6 +15,17 @@ const MAX_CODE_SIZE_BYTES = 100 * 1024; // 100 KB
 const MAX_STDIN_SIZE_BYTES = 100 * 1024; // 100 KB
 const MAX_OUTPUT_SIZE_CHARS = 256 * 1024; // 256 KB truncate limit
 
+export function normalizeOutput(str: unknown): string {
+  return String(str ?? "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .trim()
+    .split("\n")
+    .map((l) => l.trimEnd())
+    .join("\n");
+}
+
+
 export const ONLINECOMPILER_LANG_MAP: Record<string, string> = {
   python: "python-3.14",
   "python-3.14": "python-3.14",
@@ -118,8 +129,8 @@ export async function executeCodeOnlineCompilerSyncWithLang(
 
     const data = await response.json();
 
-    const rawStdout = typeof data.stdout === "string" ? data.stdout : "";
-    const rawStderr = typeof data.stderr === "string" ? data.stderr : "";
+    const rawStdout = typeof data.stdout === "string" ? data.stdout : (typeof data.output === "string" ? data.output : "");
+    const rawStderr = typeof data.stderr === "string" ? data.stderr : (typeof data.error === "string" ? data.error : "");
     const rawOutput = typeof data.output === "string" ? data.output : (rawStdout || rawStderr);
 
     // Truncate output at 256 KB
@@ -133,7 +144,7 @@ export async function executeCodeOnlineCompilerSyncWithLang(
     const statusStr = String(data.status || "").toLowerCase();
     const exitCode = data.exit_code !== undefined ? data.exit_code : null;
 
-    const errorCombined = (stderr + " " + output + " " + statusStr).toLowerCase();
+    const errorCombined = (stderr + " " + (data.error || "") + " " + statusStr).toLowerCase();
 
     // Check timeout
     const isTimeout =

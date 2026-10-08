@@ -1,3 +1,5 @@
+import { executeCodeOnlineCompilerSyncWithLang, normalizeOutput } from './onlinecompiler';
+
 export interface ExecutionResult {
   stdout: string;
   stderr: string;
@@ -7,65 +9,43 @@ export interface ExecutionResult {
   error?: string | null;
 }
 
-export function executeCodeLocally(language: string, code: string, stdinText: string = ''): ExecutionResult {
+export async function executeCodeLocally(language: string, code: string, stdinText: string = ''): Promise<ExecutionResult> {
   const start = Date.now();
-  const lang = language.toLowerCase().trim();
+  const res = await executeCodeOnlineCompilerSyncWithLang(language, code, stdinText);
+  const duration = Math.round(res.time * 1000) || (Date.now() - start);
 
-  let stdoutLines: string[] = [];
-  let stderrLines: string[] = [];
-  let exitCode = 0;
   let errorMsg: string | null = null;
+  let exitCode = 0;
 
-  try {
-    if (lang === 'python' || lang === 'py') {
-      // Regex matcher for standard python print statements
-      const printMatches = code.matchAll(/print\s*\((.*?)\)/g);
-      for (const match of printMatches) {
-        let content = match[1].trim();
-        if (content.startsWith('f"') || content.startsWith("f'")) {
-          content = content.slice(2, -1);
-        } else if ((content.startsWith('"') && content.endsWith('"')) || (content.startsWith("'") && content.endsWith("'"))) {
-          content = content.slice(1, -1);
-        }
-        stdoutLines.push(content);
-      }
-      if (stdoutLines.length === 0) {
-        stdoutLines.push('Python script executed cleanly.');
-      }
-    } else if (lang === 'javascript' || lang === 'js' || lang === 'typescript' || lang === 'ts') {
-      const logMatches = code.matchAll(/console\.log\s*\((.*?)\);?/g);
-      for (const match of logMatches) {
-        let content = match[1].trim().replace(/^['"`]|['"`]$/g, '');
-        stdoutLines.push(content);
-      }
-      if (stdoutLines.length === 0) {
-        stdoutLines.push('JavaScript runtime executed with exit code 0.');
-      }
-    } else if (lang === 'sql') {
-      stdoutLines.push('SQL query executed against sandbox database.');
-      stdoutLines.push('(1 rows returned)');
-    } else {
-      stdoutLines.push(`Executed ${language} code successfully with 0 warnings.`);
-    }
-  } catch (err: any) {
+  if (res.compilationError) {
     exitCode = 1;
-    errorMsg = err.message;
-    stderrLines.push(err.message);
+    errorMsg = res.stderr || 'Compilation Error';
+  } else if (res.runtimeError) {
+    exitCode = 1;
+    errorMsg = res.stderr || 'Runtime Error';
+  } else if (res.isTimeout) {
+    exitCode = 124;
+    errorMsg = 'Time Limit Exceeded';
+  } else if (!res.success) {
+    exitCode = 1;
+    errorMsg = res.stderr || 'Execution failed';
   }
 
-  const duration = Date.now() - start + 12;
-
   return {
-    stdout: stdoutLines.join('\n'),
-    stderr: stderrLines.join('\n'),
+    stdout: res.stdout,
+    stderr: res.stderr,
     exitCode,
     executionTimeMs: duration,
-    memoryKb: 512,
+    memoryKb: Math.round(res.memory * 1024) || 512,
     error: errorMsg,
   };
 }
 
-export function runCodeTestsLocally(language: string, code: string, testCases: Array<{ input: string; expectedOutput: string; name?: string; isHidden?: boolean }>) {
+export async function runCodeTestsLocally(
+  language: string,
+  code: string,
+  testCases: Array<{ input: string; expectedOutput: string; name?: string; isHidden?: boolean }>
+) {
   const start = Date.now();
   const results = [];
   let allPassed = true;
@@ -73,19 +53,19 @@ export function runCodeTestsLocally(language: string, code: string, testCases: A
   for (let i = 0; i < testCases.length; i++) {
     const tc = testCases[i];
     const name = tc.name || `Test Case #${i + 1}`;
-    const exp = String(tc.expectedOutput || '').trim();
-    const execRes = executeCodeLocally(language, code, tc.input);
-    const actual = execRes.stdout.trim();
+    const exp = normalizeOutput(tc.expectedOutput);
+    const execRes = await executeCodeLocally(language, code, tc.input);
+    const actual = normalizeOutput(execRes.stdout);
 
-    const passed = actual === exp || actual.includes(exp) || exp === '';
+    const passed = (actual === exp || exp === '') && execRes.exitCode === 0;
     if (!passed) allPassed = false;
 
     results.push({
       name,
       passed,
       input: tc.isHidden ? '<hidden>' : tc.input,
-      expectedOutput: tc.isHidden ? '<hidden>' : exp,
-      actualOutput: tc.isHidden && !passed ? '<hidden output>' : actual,
+      expectedOutput: tc.isHidden ? '<hidden>' : tc.expectedOutput,
+      actualOutput: tc.isHidden && !passed ? '<hidden output>' : execRes.stdout,
       executionTimeMs: execRes.executionTimeMs,
       error: execRes.error,
     });
@@ -100,6 +80,7 @@ export function runCodeTestsLocally(language: string, code: string, testCases: A
     totalTimeMs: Date.now() - start + 15,
   };
 }
+
 
 export function generateExecutionVisualization(language: string, code: string) {
   const lines = code.split('\n');

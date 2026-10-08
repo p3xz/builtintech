@@ -104,7 +104,7 @@ export default function DuelRoomPage() {
 
   useEffect(() => {
     if (!room) return;
-    const p1Done = room.player1.status === "SOLVED" || room.player1.status === "SUBMITTED";
+    const p1Done = room.player1?.status === "SOLVED" || room.player1?.status === "SUBMITTED";
     const p2Done = room.player2 && (room.player2.status === "SOLVED" || room.player2.status === "SUBMITTED");
     const timerExpired = Boolean(room.endsAt && Date.now() >= room.endsAt);
 
@@ -450,7 +450,7 @@ export default function DuelRoomPage() {
                     />
                   ) : (
                     <div className="h-full flex flex-col">
-                      {isFinished && room.player1.code ? (
+                      {isFinished && room.player1?.code ? (
                         <Editor
                           height="100%"
                           defaultLanguage="python"

@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Language and code are required' }, { status: 400 });
     }
 
-    const result = executeCodeLocally(language, code, stdin || '');
+    const result = await executeCodeLocally(language, code, stdin || '');
 
     const authUser = await getAuthenticatedUser(req);
     if (authUser && result.exitCode === 0) {

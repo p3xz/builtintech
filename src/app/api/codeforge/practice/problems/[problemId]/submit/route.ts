@@ -31,7 +31,7 @@ export async function POST(
       return NextResponse.json({ error: 'Practice problem not found' }, { status: 404 });
     }
 
-    const testResults = runCodeTestsLocally(language, code, problem.testCases || []);
+    const testResults = await runCodeTestsLocally(language, code, problem.testCases || []);
     const status = testResults.allPassed ? 'Accepted' : 'Wrong Answer';
 
     let xpAwarded = 0;

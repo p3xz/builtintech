@@ -67,8 +67,8 @@ export async function POST(
     }
 
     const trimmedName = playerName.trim().toLowerCase();
-    const isP1 = room.player1.name.toLowerCase() === trimmedName;
-    const isP2 = room.player2?.name.toLowerCase() === trimmedName;
+    const isP1 = room.player1?.name?.toLowerCase() === trimmedName;
+    const isP2 = room.player2?.name?.toLowerCase() === trimmedName;
 
     if (!isP1 && !isP2) {
       return NextResponse.json(
@@ -86,8 +86,8 @@ export async function POST(
       const execResult = await executeCodeOnlineCompilerSync(code, test.input);
 
       if (execResult.success) {
-        const normalizedActual = execResult.stdout.trim();
-        const normalizedExpected = test.expected.trim();
+        const normalizedActual = String(execResult.stdout ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim().split("\n").map((l) => l.trimEnd()).join("\n");
+        const normalizedExpected = String(test.expected ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim().split("\n").map((l) => l.trimEnd()).join("\n");
 
         if (normalizedActual === normalizedExpected) {
           testsPassed++;
@@ -105,7 +105,7 @@ export async function POST(
     targetPlayer.status = isAllPassed ? "SOLVED" : "SUBMITTED";
 
     // If both players solved, finish the room
-    if (room.player1.status === "SOLVED" && room.player2?.status === "SOLVED") {
+    if (room.player1?.status === "SOLVED" && room.player2?.status === "SOLVED") {
       room.status = "FINISHED";
     }
 

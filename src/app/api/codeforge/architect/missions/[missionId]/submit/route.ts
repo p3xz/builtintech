@@ -35,7 +35,7 @@ export async function POST(
 
     // Execute code with phase test suite
     const fullScript = `${code}\n\n${targetPhase.testSuiteCode}`;
-    const execRes = executeCodeLocally(mission.language || 'python', fullScript);
+    const execRes = await executeCodeLocally(mission.language || 'python', fullScript);
     const passed = execRes.exitCode === 0 && !execRes.error;
 
     let prog = await progCollection.findOne({ userId: authUser.userId, missionId });

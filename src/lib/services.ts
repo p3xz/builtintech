@@ -333,12 +333,12 @@ export async function evaluateQuestionSubmission(
     const submittedCode = code || String(answer);
     const testCases = q.testCases || [];
     if (testCases.length > 0) {
-      const res = runCodeTestsLocally('python', submittedCode, testCases);
+      const res = await runCodeTestsLocally('python', submittedCode, testCases);
       testResults = res.results;
       isCorrect = res.allPassed;
       stdout = res.results.map((r: any) => `${r.name}: ${r.passed ? 'PASS' : 'FAIL'}`).join('\n');
     } else {
-      const res = executeCodeLocally('python', submittedCode);
+      const res = await executeCodeLocally('python', submittedCode);
       stdout = res.stdout;
       stderr = res.stderr;
       isCorrect = res.exitCode === 0 && !res.error;
