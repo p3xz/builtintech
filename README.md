@@ -16,6 +16,10 @@
   <img src="https://img.shields.io/badge/Groq_AI-Referee-purple?style=for-the-badge&logo=openai" alt="Groq AI" />
 </div>
 
+<div align="center">
+  <img src="public/preview.png" alt="Built In Tech homepage preview" width="800" />
+</div>
+
 ---
 
 ## Overview
