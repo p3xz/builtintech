@@ -1,0 +1,181 @@
+[
+  {
+    "id": "two-sum",
+    "title": "Two Sum",
+    "difficulty": "Easy",
+    "statement": "Given an array of integers `nums` and an integer `target`, return the indices of the two numbers that add up to `target`.\n\nYou may assume that each input has exactly one solution, and you may not use the same element twice.\n\nReturn the answer as a list of two indices in any order.",
+    "examples": [
+      { "input": "nums = [2, 7, 11, 15], target = 9", "output": "[0, 1]", "explanation": "nums[0] + nums[1] = 2 + 7 = 9" },
+      { "input": "nums = [3, 2, 4], target = 6", "output": "[1, 2]" }
+    ],
+    "hiddenTests": [
+      { "input": { "nums": [2, 7, 11, 15], "target": 9 }, "expected": [0, 1] },
+      { "input": { "nums": [3, 2, 4], "target": 6 }, "expected": [1, 2] },
+      { "input": { "nums": [3, 3], "target": 6 }, "expected": [0, 1] },
+      { "input": { "nums": [1, 5, 3, 7, 2], "target": 9 }, "expected": [1, 3] },
+      { "input": { "nums": [-1, -2, -3, -4, -5], "target": -8 }, "expected": [2, 4] },
+      { "input": { "nums": [0, 4, 3, 0], "target": 0 }, "expected": [0, 3] },
+      { "input": { "nums": [1000000, 500000, -1500000, 1000000], "target": -500000 }, "expected": [1, 2] },
+      { "input": { "nums": [1, 2], "target": 3 }, "expected": [0, 1] }
+    ],
+    "perfProbe": {
+      "description": "Large array O(n^2) killer",
+      "input": { "nums": "__GENERATE_RANGE_0_99999__", "target": 199997 },
+      "generateInput": "nums = list(range(100000)); target = 199997",
+      "expected": [99998, 99999],
+      "timeoutMs": 2000
+    },
+    "efficiencyTrap": "Brute-force O(n^2) nested loop will time out on the perf probe. Optimal is O(n) with a hash map.",
+    "referenceSolution": "def two_sum(nums, target):\n    seen = {}\n    for i, n in enumerate(nums):\n        comp = target - n\n        if comp in seen:\n            return [seen[comp], i]\n        seen[n] = i\n    return []",
+    "judgeNotes": "Check for hash-map vs brute-force. Penalize O(n^2). Bonus for early return and clean variable names."
+  },
+  {
+    "id": "best-time-to-buy-sell-stock",
+    "title": "Best Time to Buy and Sell Stock",
+    "difficulty": "Easy",
+    "statement": "Given an array `prices` where `prices[i]` is the price of a given stock on the i-th day.\n\nYou want to maximize your profit by choosing a single day to buy and a single day to sell in the future.\n\nReturn the maximum profit you can achieve. If no profit is possible, return 0.",
+    "examples": [
+      { "input": "prices = [7, 1, 5, 3, 6, 4]", "output": "5", "explanation": "Buy on day 2 (price=1) and sell on day 5 (price=6), profit = 6-1 = 5." },
+      { "input": "prices = [7, 6, 4, 3, 1]", "output": "0", "explanation": "No profitable transaction possible." }
+    ],
+    "hiddenTests": [
+      { "input": { "prices": [7, 1, 5, 3, 6, 4] }, "expected": 5 },
+      { "input": { "prices": [7, 6, 4, 3, 1] }, "expected": 0 },
+      { "input": { "prices": [1, 2] }, "expected": 1 },
+      { "input": { "prices": [2, 1] }, "expected": 0 },
+      { "input": { "prices": [1] }, "expected": 0 },
+      { "input": { "prices": [3, 3, 3, 3] }, "expected": 0 },
+      { "input": { "prices": [1, 4, 2, 7, 1, 3] }, "expected": 6 },
+      { "input": { "prices": [10, 8, 2, 9, 1, 7] }, "expected": 7 }
+    ],
+    "perfProbe": {
+      "description": "Large descending then spike",
+      "generateInput": "prices = list(range(100000, 0, -1)) + [200000]",
+      "expected": 199999,
+      "timeoutMs": 2000
+    },
+    "efficiencyTrap": "O(n^2) checking all pairs will TLE. Optimal is O(n) single pass tracking min price.",
+    "referenceSolution": "def max_profit(prices):\n    min_price = float('inf')\n    max_profit = 0\n    for price in prices:\n        min_price = min(min_price, price)\n        max_profit = max(max_profit, price - min_price)\n    return max_profit",
+    "judgeNotes": "Check single-pass vs brute-force. Look for proper min tracking. Penalize storing all differences."
+  },
+  {
+    "id": "valid-parentheses",
+    "title": "Valid Parentheses",
+    "difficulty": "Easy",
+    "statement": "Given a string `s` containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.\n\nA string is valid if:\n1. Open brackets are closed by the same type of brackets.\n2. Open brackets are closed in the correct order.\n3. Every close bracket has a corresponding open bracket of the same type.",
+    "examples": [
+      { "input": "s = \"()\"", "output": "True" },
+      { "input": "s = \"()[]{}\"", "output": "True" },
+      { "input": "s = \"(]\"", "output": "False" }
+    ],
+    "hiddenTests": [
+      { "input": { "s": "()" }, "expected": true },
+      { "input": { "s": "()[]{}" }, "expected": true },
+      { "input": { "s": "(]" }, "expected": false },
+      { "input": { "s": "([)]" }, "expected": false },
+      { "input": { "s": "{[]}" }, "expected": true },
+      { "input": { "s": "" }, "expected": true },
+      { "input": { "s": "(" }, "expected": false },
+      { "input": { "s": "(((((((())))))))" }, "expected": true },
+      { "input": { "s": "{[()]}" }, "expected": true },
+      { "input": { "s": "}{" }, "expected": false }
+    ],
+    "perfProbe": {
+      "description": "Deeply nested valid string",
+      "generateInput": "s = '(' * 50000 + ')' * 50000",
+      "expected": true,
+      "timeoutMs": 2000
+    },
+    "efficiencyTrap": "String replacement approaches (.replace) can be O(n^2). Stack-based is O(n).",
+    "referenceSolution": "def is_valid(s):\n    stack = []\n    mapping = {')': '(', '}': '{', ']': '['}\n    for char in s:\n        if char in mapping:\n            if not stack or stack[-1] != mapping[char]:\n                return False\n            stack.pop()\n        else:\n            stack.append(char)\n    return len(stack) == 0",
+    "judgeNotes": "Stack-based is ideal. Penalize string replacement or regex. Check edge cases: empty string, single bracket."
+  },
+  {
+    "id": "longest-substring-no-repeat",
+    "title": "Longest Substring Without Repeating Characters",
+    "difficulty": "Medium",
+    "statement": "Given a string `s`, find the length of the longest substring without repeating characters.",
+    "examples": [
+      { "input": "s = \"abcabcbb\"", "output": "3", "explanation": "The answer is 'abc', with length 3." },
+      { "input": "s = \"bbbbb\"", "output": "1", "explanation": "The answer is 'b', with length 1." },
+      { "input": "s = \"pwwkew\"", "output": "3", "explanation": "The answer is 'wke', with length 3." }
+    ],
+    "hiddenTests": [
+      { "input": { "s": "abcabcbb" }, "expected": 3 },
+      { "input": { "s": "bbbbb" }, "expected": 1 },
+      { "input": { "s": "pwwkew" }, "expected": 3 },
+      { "input": { "s": "" }, "expected": 0 },
+      { "input": { "s": "a" }, "expected": 1 },
+      { "input": { "s": "abcdef" }, "expected": 6 },
+      { "input": { "s": "dvdf" }, "expected": 3 },
+      { "input": { "s": "anviaj" }, "expected": 5 }
+    ],
+    "perfProbe": {
+      "description": "Long string with limited charset",
+      "generateInput": "import random; random.seed(42); s = ''.join(random.choices('abcdefghij', k=100000))",
+      "expected": 10,
+      "timeoutMs": 2000
+    },
+    "efficiencyTrap": "Brute-force checking all substrings is O(n^3). Sliding window with a set/map is O(n).",
+    "referenceSolution": "def length_of_longest_substring(s):\n    char_index = {}\n    left = 0\n    max_len = 0\n    for right, char in enumerate(s):\n        if char in char_index and char_index[char] >= left:\n            left = char_index[char] + 1\n        char_index[char] = right\n        max_len = max(max_len, right - left + 1)\n    return max_len",
+    "judgeNotes": "Sliding window is optimal. Check for proper left pointer update. Penalize O(n^2) or O(n^3) approaches."
+  },
+  {
+    "id": "maximum-subarray",
+    "title": "Maximum Subarray",
+    "difficulty": "Medium",
+    "statement": "Given an integer array `nums`, find the subarray with the largest sum, and return its sum.\n\nA subarray is a contiguous non-empty sequence of elements within an array.",
+    "examples": [
+      { "input": "nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]", "output": "6", "explanation": "The subarray [4, -1, 2, 1] has the largest sum 6." },
+      { "input": "nums = [1]", "output": "1" },
+      { "input": "nums = [5, 4, -1, 7, 8]", "output": "23" }
+    ],
+    "hiddenTests": [
+      { "input": { "nums": [-2, 1, -3, 4, -1, 2, 1, -5, 4] }, "expected": 6 },
+      { "input": { "nums": [1] }, "expected": 1 },
+      { "input": { "nums": [5, 4, -1, 7, 8] }, "expected": 23 },
+      { "input": { "nums": [-1] }, "expected": -1 },
+      { "input": { "nums": [-2, -1] }, "expected": -1 },
+      { "input": { "nums": [1, 2, 3, 4, 5] }, "expected": 15 },
+      { "input": { "nums": [-1, -2, -3, 10] }, "expected": 10 },
+      { "input": { "nums": [100, -1, 100] }, "expected": 199 }
+    ],
+    "perfProbe": {
+      "description": "Large alternating array",
+      "generateInput": "import random; random.seed(42); nums = [random.randint(-100, 100) for _ in range(200000)]",
+      "expected": null,
+      "timeoutMs": 2000
+    },
+    "efficiencyTrap": "O(n^2) checking all subarrays will TLE. Kadane's algorithm is O(n).",
+    "referenceSolution": "def max_subarray(nums):\n    max_sum = nums[0]\n    current = nums[0]\n    for n in nums[1:]:\n        current = max(n, current + n)\n        max_sum = max(max_sum, current)\n    return max_sum",
+    "judgeNotes": "Kadane's algorithm is the standard. Check for proper handling of all-negative arrays. Penalize O(n^2)."
+  },
+  {
+    "id": "reverse-integer",
+    "title": "Reverse Integer",
+    "difficulty": "Medium",
+    "statement": "Given a signed 32-bit integer `x`, return `x` with its digits reversed.\n\nIf reversing `x` causes the value to go outside the signed 32-bit integer range [-2^31, 2^31 - 1], return 0.\n\nAssume the environment does not allow you to store 64-bit integers.",
+    "examples": [
+      { "input": "x = 123", "output": "321" },
+      { "input": "x = -123", "output": "-321" },
+      { "input": "x = 120", "output": "21" },
+      { "input": "x = 0", "output": "0" }
+    ],
+    "hiddenTests": [
+      { "input": { "x": 123 }, "expected": 321 },
+      { "input": { "x": -123 }, "expected": -321 },
+      { "input": { "x": 120 }, "expected": 21 },
+      { "input": { "x": 0 }, "expected": 0 },
+      { "input": { "x": 1534236469 }, "expected": 0 },
+      { "input": { "x": -2147483648 }, "expected": 0 },
+      { "input": { "x": 2147483647 }, "expected": 0 },
+      { "input": { "x": 10 }, "expected": 1 },
+      { "input": { "x": -10 }, "expected": -1 },
+      { "input": { "x": 1000000003 }, "expected": 0 }
+    ],
+    "perfProbe": null,
+    "efficiencyTrap": "No efficiency trap; this is about correctness with overflow handling.",
+    "referenceSolution": "def reverse_integer(x):\n    INT_MIN, INT_MAX = -2**31, 2**31 - 1\n    sign = -1 if x < 0 else 1\n    x = abs(x)\n    rev = 0\n    while x != 0:\n        digit = x % 10\n        x //= 10\n        rev = rev * 10 + digit\n    rev *= sign\n    return rev if INT_MIN <= rev <= INT_MAX else 0",
+    "judgeNotes": "Key: overflow check. Penalize string-based reversal without overflow check. Bonus for mathematical reversal with proper bounds checking."
+  }
+]
