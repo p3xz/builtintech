@@ -16,6 +16,10 @@ const INSIDCODE_URI =
 
 const INSIDCODE_DB_NAME = process.env.INSIDCODE_DB_NAME || "insidcode";
 
+function sanitizedUri(uri: string): string {
+  return uri.replace(/:\/\/([^:]+):([^@]+)@/, "://$1:<redacted>@");
+}
+
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
@@ -56,7 +60,8 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
       })
       .catch((err) => {
         cached.promise = null;
-        console.error("[MongoDB] Connection failure:", err);
+        console.error("[MongoDB] BuiltInTech mongoose connection failed:", err?.message || err);
+        console.error("[MongoDB] URI host:", sanitizedUri(MONGODB_URI));
         throw err;
       });
   }
@@ -70,39 +75,78 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
   }
 }
 
-// BuiltInTech Client Promise
-let clientPromise: Promise<MongoClient>;
-if (process.env.NODE_ENV === "development") {
+/**
+ * Lazy MongoClient for BuiltInTech.
+ * Does NOT connect at import time. Connection starts on first actual use.
+ * Failures clear the cached promise so the next call retries instead of
+ * reusing a rejected promise. Errors propagate to the caller.
+ */
+function getClientPromise(): Promise<MongoClient> {
   if (!global._mongoClientPromise) {
-    const client = new MongoClient(MONGODB_URI);
-    global._mongoClientPromise = client.connect();
+    const client = new MongoClient(MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    global._mongoClientPromise = client.connect().catch((err) => {
+      global._mongoClientPromise = undefined;
+      console.error(
+        "[MongoDB] BuiltInTech client connection failed:",
+        err?.message || err
+      );
+      console.error("[MongoDB] URI host:", sanitizedUri(MONGODB_URI));
+      throw err;
+    });
   }
-  clientPromise = global._mongoClientPromise;
-} else {
-  const client = new MongoClient(MONGODB_URI);
-  clientPromise = client.connect();
+  return global._mongoClientPromise;
 }
-
-// InsidCode Client Promise
-let insidcodeClientPromise: Promise<MongoClient>;
-if (process.env.NODE_ENV === "development") {
-  if (!global._insidcodeClientPromise) {
-    const client = new MongoClient(INSIDCODE_URI);
-    global._insidcodeClientPromise = client.connect();
-  }
-  insidcodeClientPromise = global._insidcodeClientPromise;
-} else {
-  const client = new MongoClient(INSIDCODE_URI);
-  insidcodeClientPromise = client.connect();
-}
-
-export { clientPromise, insidcodeClientPromise };
 
 /**
- * Access BuiltInTech Database (Education, Users, Progress, Ranks, Achievements, Certificates)
+ * Lazy MongoClient for InsidCode.
+ * Does NOT connect at import time. Connection starts on first actual use.
+ * Failures clear the cached promise so the next call retries.
+ * Errors propagate to the caller.
+ */
+function getInsidcodeClientPromise(): Promise<MongoClient> {
+  if (!global._insidcodeClientPromise) {
+    const client = new MongoClient(INSIDCODE_URI, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    global._insidcodeClientPromise = client.connect().catch((err) => {
+      global._insidcodeClientPromise = undefined;
+      console.error(
+        "[MongoDB] InsidCode client connection failed:",
+        err?.message || err
+      );
+      console.error("[MongoDB] URI host:", sanitizedUri(INSIDCODE_URI));
+      throw err;
+    });
+  }
+  return global._insidcodeClientPromise;
+}
+
+// Backwards-compatible lazy exports. These behave like promises but do not
+// trigger a connection until first awaited/used. Safe to import anywhere.
+export const clientPromise: Promise<MongoClient> = {
+  then: (onFulfilled, onRejected) =>
+    getClientPromise().then(onFulfilled, onRejected),
+  catch: (onRejected) => getClientPromise().catch(onRejected),
+  finally: (onFinally) => getClientPromise().finally(onFinally),
+  [Symbol.toStringTag]: "Promise",
+} as Promise<MongoClient>;
+
+export const insidcodeClientPromise: Promise<MongoClient> = {
+  then: (onFulfilled, onRejected) =>
+    getInsidcodeClientPromise().then(onFulfilled, onRejected),
+  catch: (onRejected) => getInsidcodeClientPromise().catch(onRejected),
+  finally: (onFinally) => getInsidcodeClientPromise().finally(onFinally),
+  [Symbol.toStringTag]: "Promise",
+} as Promise<MongoClient>;
+
+/**
+ * Access BuiltInTech Database (users, auth, education progress, practice,
+ * curriculum, duels, submissions, Elo, Duel Points, leaderboard, history)
  */
 export async function getDatabase(): Promise<Db> {
-  const client = await clientPromise;
+  const client = await getClientPromise();
   return client.db(BUILTINTECH_DB_NAME);
 }
 
@@ -111,9 +155,10 @@ export async function getBuiltInTechDb(): Promise<Db> {
 }
 
 /**
- * Access InsidCode Database (330 Arena Questions, Duel Rooms, Submissions)
+ * Access InsidCode Database (questions, problem metadata, starter templates,
+ * hidden test cases, difficulty, tags)
  */
 export async function getInsidCodeDb(): Promise<Db> {
-  const client = await insidcodeClientPromise;
+  const client = await getInsidcodeClientPromise();
   return client.db(INSIDCODE_DB_NAME);
 }
