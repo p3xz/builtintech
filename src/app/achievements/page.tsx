@@ -14,6 +14,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { IAchievement } from "@/types/learning";
+import { AchievementsSkeleton } from "@/components/Skeletons";
 
 export default function AchievementsPage() {
   const { data: session, status } = useSession();
@@ -69,11 +70,13 @@ export default function AchievementsPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0b] text-[#f4f4f5] flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto" />
-          <p className="text-sm text-zinc-400 font-mono">Loading achievements…</p>
+      <div className="min-h-screen bg-[#0a0a0b] text-[#f4f4f5] py-8 px-4 sm:px-6 max-w-6xl mx-auto w-full font-sans">
+        <div className="border-b border-zinc-800 pb-8 mb-8">
+          <div className="w-32 h-6 bg-zinc-800/60 rounded-full mb-3 animate-pulse" />
+          <div className="w-56 h-9 bg-zinc-800/60 rounded-lg mb-2 animate-pulse" />
+          <div className="w-96 h-4 bg-zinc-800/60 rounded animate-pulse" />
         </div>
+        <AchievementsSkeleton />
       </div>
     );
   }

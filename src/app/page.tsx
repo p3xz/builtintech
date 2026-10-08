@@ -32,7 +32,7 @@ import ConstellationField from "@/components/ConstellationField";
 import GlowHorizonFM from "@/components/ui/glow-horizon";
 import { calculateLevelFromXp } from "@/services/progressService";
 import { getDecoratedCourse } from "@/services/courseService";
-import { getCourseById } from "@/data/courses";
+import { COURSES, getCourseById } from "@/data/courses";
 import { ICourse } from "@/types/learning";
 import { DashboardSkeleton } from "@/components/Skeletons";
 
@@ -294,31 +294,29 @@ function AuthenticatedDashboard({ userId }: { userId: string }) {
         setProgress(prog);
 
         // Resolve current course/module/lesson names
-        if (prog.currentCourseId) {
-          const rawCourse = getCourseById(prog.currentCourseId);
-          if (rawCourse) {
-            const decorated = getDecoratedCourse(rawCourse, {
-              completedLessonIds: prog.completedLessonIds,
-              passedQuizIds: prog.passedQuizIds,
-              currentCourseId: prog.currentCourseId,
-              currentModuleId: prog.currentModuleId,
-              currentLessonId: prog.currentLessonId,
-              enrolledCourseIds: prog.enrolledCourseIds,
-              completedModuleIds: prog.completedModuleIds,
-            });
-            setCurrentCourse(decorated);
-            setCurrentCourseProgress(decorated.progressPercent || 0);
+        const rawCourse = (prog.currentCourseId ? getCourseById(prog.currentCourseId) : null) || COURSES[0];
+        if (rawCourse) {
+          const decorated = getDecoratedCourse(rawCourse, {
+            completedLessonIds: prog.completedLessonIds || [],
+            passedQuizIds: prog.passedQuizIds || [],
+            currentCourseId: rawCourse.courseId,
+            currentModuleId: prog.currentModuleId || rawCourse.modules[0]?.moduleId,
+            currentLessonId: prog.currentLessonId || rawCourse.modules[0]?.lessons[0]?.lessonId,
+            enrolledCourseIds: prog.enrolledCourseIds || [rawCourse.courseId],
+            completedModuleIds: prog.completedModuleIds || [],
+          });
+          setCurrentCourse(decorated);
+          setCurrentCourseProgress(decorated.progressPercent || 0);
 
-            const mod = decorated.modules.find(
-              (m) => m.moduleId === prog.currentModuleId
-            ) || decorated.modules[0];
-            if (mod) {
-              setCurrentModuleName(mod.title);
-              const les = mod.lessons.find(
-                (l) => l.lessonId === prog.currentLessonId
-              ) || mod.lessons[0];
-              if (les) setCurrentLessonName(les.title);
-            }
+          const mod = decorated.modules.find(
+            (m) => m.moduleId === prog.currentModuleId
+          ) || decorated.modules[0];
+          if (mod) {
+            setCurrentModuleName(mod.title);
+            const les = mod.lessons.find(
+              (l) => l.lessonId === prog.currentLessonId
+            ) || mod.lessons[0];
+            if (les) setCurrentLessonName(les.title);
           }
         }
       } catch (e) {
@@ -377,9 +375,15 @@ function AuthenticatedDashboard({ userId }: { userId: string }) {
     100
   );
 
-  const currentCourseId = progress?.currentCourseId || "";
-  const currentModuleId = progress?.currentModuleId || "";
-  const currentLessonId = progress?.currentLessonId || "";
+  const currentCourseId = progress?.currentCourseId || currentCourse?.courseId || "python-fundamentals";
+  const currentModuleId = progress?.currentModuleId || currentCourse?.modules[0]?.moduleId || "";
+  const currentLessonId = progress?.currentLessonId || currentCourse?.modules.find((m) => m.moduleId === currentModuleId)?.lessons[0]?.lessonId || "";
+
+  const continueHref = currentLessonId
+    ? `/learn/${currentCourseId}/${currentModuleId}/${currentLessonId}`
+    : currentModuleId
+    ? `/learn/${currentCourseId}/${currentModuleId}/quiz`
+    : `/learn/${currentCourseId}`;
 
   return (
     <main className="relative min-h-screen bg-[#0a0a0b] text-[#f4f4f5] flex flex-col selection:bg-cyan-500/30 overflow-x-hidden">
@@ -454,7 +458,7 @@ function AuthenticatedDashboard({ userId }: { userId: string }) {
 
                 <div className="shrink-0 flex flex-col sm:flex-row lg:flex-col gap-3">
                   <Link
-                    href={`/learn/${currentCourseId}/${currentModuleId}/${currentLessonId}`}
+                    href={continueHref}
                     className="w-full sm:w-auto"
                   >
                     <button className="w-full px-8 py-4 bg-cyan-400 hover:bg-cyan-300 text-black font-mono font-bold rounded-2xl text-sm sm:text-base transition-all duration-200 shadow-[0_0_30px_rgba(34,211,238,0.25)] flex items-center justify-center gap-3 cursor-pointer active:scale-[0.98]">

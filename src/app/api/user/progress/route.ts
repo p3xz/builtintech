@@ -125,7 +125,13 @@ export async function POST(req: NextRequest) {
       }
 
       // Check if all lessons in module are complete
-      const allDone = targetModule?.lessons.every((l) => learning.completedLessonIds.includes(l.lessonId));
+      const allDone = Boolean(
+        targetModule &&
+          targetModule.lessons.length > 0 &&
+          targetModule.lessons.every((l) =>
+            learning.completedLessonIds.includes(l.lessonId)
+          )
+      );
 
       await learning.save();
       const updatedUser = await User.findById(session.user.id);

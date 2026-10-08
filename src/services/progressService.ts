@@ -43,7 +43,7 @@ export async function saveOnboardingPreferences(
 ): Promise<{ courseId: string; moduleId: string; lessonId: string }> {
   const matchedCourse = getCourseByLanguageAndLevel(language, experience);
   const targetCourseId = matchedCourse?.courseId || "python-fundamentals";
-  const targetModuleId = matchedCourse?.modules[0]?.moduleId || "python-basics";
+  const targetModuleId = matchedCourse?.modules[0]?.moduleId || "environment-setup-python-basics";
   const targetLessonId = matchedCourse?.modules[0]?.lessons[0]?.lessonId || "what-is-python";
 
   try {

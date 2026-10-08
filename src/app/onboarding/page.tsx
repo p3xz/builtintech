@@ -11,20 +11,21 @@ const SUPPORTED_LANGUAGES: Array<{
   name: string;
   icon: string;
   desc: string;
+  comingSoon?: boolean;
 }> = [
   { id: "python", name: "Python", icon: "🐍", desc: "Clean syntax, AI/ML, and automation" },
-  { id: "javascript", name: "JavaScript", icon: "⚡", desc: "Full-stack web & async programming" },
-  { id: "html", name: "HTML", icon: "🌐", desc: "Semantic markup & web structures" },
-  { id: "css", name: "CSS", icon: "🎨", desc: "Modern styling, Flexbox & responsive layouts" },
-  { id: "sql", name: "SQL", icon: "🗄️", desc: "Relational queries, joins & databases" },
-  { id: "typescript", name: "TypeScript", icon: "🔷", desc: "Strict type systems & large-scale code" },
   { id: "java", name: "Java", icon: "☕", desc: "Object-oriented core & enterprise systems" },
   { id: "cpp", name: "C++", icon: "⚙️", desc: "High-performance systems & memory management" },
   { id: "c", name: "C", icon: "🔧", desc: "Low-level foundations & computer architecture" },
-  { id: "csharp", name: "C#", icon: "🎯", desc: "Modern .NET, game dev & enterprise cloud" },
-  { id: "php", name: "PHP", icon: "🐘", desc: "Modern server-side web backends" },
-  { id: "swift", name: "Swift", icon: "🦅", desc: "iOS, macOS, and native Apple ecosystems" },
-  { id: "ruby", name: "Ruby", icon: "💎", desc: "Developer ergonomics & web scripting" },
+  { id: "javascript", name: "JavaScript", icon: "⚡", desc: "Full-stack web & async programming", comingSoon: true },
+  { id: "typescript", name: "TypeScript", icon: "🔷", desc: "Strict type systems & large-scale code", comingSoon: true },
+  { id: "html", name: "HTML", icon: "🌐", desc: "Semantic markup & web structures", comingSoon: true },
+  { id: "css", name: "CSS", icon: "🎨", desc: "Modern styling, Flexbox & responsive layouts", comingSoon: true },
+  { id: "sql", name: "SQL", icon: "🗄️", desc: "Relational queries, joins & databases", comingSoon: true },
+  { id: "csharp", name: "C#", icon: "🎯", desc: "Modern .NET, game dev & enterprise cloud", comingSoon: true },
+  { id: "php", name: "PHP", icon: "🐘", desc: "Modern server-side web backends", comingSoon: true },
+  { id: "swift", name: "Swift", icon: "🦅", desc: "iOS, macOS, and native Apple ecosystems", comingSoon: true },
+  { id: "ruby", name: "Ruby", icon: "💎", desc: "Developer ergonomics & web scripting", comingSoon: true },
 ];
 
 const EXPERIENCE_LEVELS: Array<{
@@ -109,14 +110,18 @@ export default function OnboardingPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-[360px] overflow-y-auto pr-1">
               {SUPPORTED_LANGUAGES.map((lang) => {
                 const isSelected = selectedLanguage === lang.id;
+                const isAvailable = !lang.comingSoon;
                 return (
                   <button
                     key={lang.id}
-                    onClick={() => setSelectedLanguage(lang.id)}
-                    className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between cursor-pointer font-sans ${
-                      isSelected
-                        ? "bg-cyan-950/40 border-cyan-400 text-white shadow-lg shadow-cyan-950/40"
-                        : "bg-[#18181b] border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:text-white"
+                    disabled={!isAvailable}
+                    onClick={() => isAvailable && setSelectedLanguage(lang.id)}
+                    className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between font-sans relative ${
+                      !isAvailable
+                        ? "bg-[#18181b]/50 border-zinc-800/50 text-zinc-600 opacity-60 cursor-not-allowed"
+                        : isSelected
+                        ? "bg-cyan-950/40 border-cyan-400 text-white shadow-lg shadow-cyan-950/40 cursor-pointer"
+                        : "bg-[#18181b] border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:text-white cursor-pointer"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -125,6 +130,11 @@ export default function OnboardingPage() {
                         <div className="w-4 h-4 rounded-full bg-cyan-400 text-black flex items-center justify-center text-[10px] font-bold">
                           <Check className="w-3 h-3" />
                         </div>
+                      )}
+                      {!isAvailable && (
+                        <span className="text-[9px] uppercase tracking-wider font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                          Soon
+                        </span>
                       )}
                     </div>
                     <div>

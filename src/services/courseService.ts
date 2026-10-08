@@ -87,15 +87,30 @@ export function getDecoratedCourse(
     };
   });
 
-  const progressPercent =
-    totalLessons > 0 ? Math.round((completedLessonsCount / totalLessons) * 100) : 0;
+    const completedModulesCount = modules.filter((m) => m.isCompleted).length;
+    const progressPercent =
+      totalLessons > 0
+        ? Math.round((completedLessonsCount / totalLessons) * 100)
+        : modules.length > 0
+        ? Math.round((completedModulesCount / modules.length) * 100)
+        : 0;
 
-  return {
-    ...course,
-    modules,
-    isEnrolled: progress.enrolledCourseIds?.includes(course.courseId) || false,
-    progressPercent,
-  };
+    const isEnrolled = Boolean(
+      progress.enrolledCourseIds?.some(
+        (id) =>
+          id === course.id ||
+          id === course.courseId ||
+          id === course.slug ||
+          id === course.language
+      )
+    );
+
+    return {
+      ...course,
+      modules,
+      isEnrolled,
+      progressPercent,
+    };
 }
 
 export async function markLessonCompleted(

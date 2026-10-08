@@ -41,12 +41,8 @@ export default function CoursesDirectoryPage() {
   const languagesList = [
     { id: "all", name: "All Languages" },
     { id: "python", name: "Python" },
-    { id: "javascript", name: "JavaScript" },
-    { id: "sql", name: "SQL" },
-    { id: "html", name: "HTML & CSS" },
-    { id: "typescript", name: "TypeScript" },
     { id: "java", name: "Java" },
-    { id: "cpp", name: "C++" },
+    { id: "cpp", name: "C/C++" },
     { id: "c", name: "C" },
   ];
 

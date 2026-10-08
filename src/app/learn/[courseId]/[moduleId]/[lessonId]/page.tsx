@@ -24,6 +24,7 @@ import { markLessonCompleted, fetchUserProgress } from "@/services/courseService
 import { ICourse, ICourseModule, ILesson } from "@/types/learning";
 import ExecutionVisualizer from "@/components/ExecutionVisualizer";
 import { LoadingState, ErrorState } from "@/components/StatusState";
+import { LessonContentSkeleton } from "@/components/Skeletons";
 
 export default function LessonDetailPage() {
   const params = useParams();
@@ -77,7 +78,7 @@ export default function LessonDetailPage() {
     loadLesson();
   }, [courseId, moduleId, lessonId]);
 
-  if (loading) return <LoadingState message="Loading lesson..." />;
+  if (loading) return <LessonContentSkeleton />;
   if (!course || !currentModule || !lesson) {
     return <ErrorState title="Lesson Not Found" message="The requested lesson does not exist." />;
   }

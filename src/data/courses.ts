@@ -645,8 +645,33 @@ export function getAllCourses(): ICourse[] {
   return COURSES;
 }
 
+const COURSE_ALIASES: Record<string, string> = {
+  python: "python-fundamentals",
+  course_python: "python-fundamentals",
+  "python-fundamentals": "python-fundamentals",
+  java: "java-core",
+  course_java: "java-core",
+  "java-core": "java-core",
+  cpp: "cpp-systems",
+  "c++": "cpp-systems",
+  course_cpp: "cpp-systems",
+  "cpp-systems": "cpp-systems",
+  c: "c-low-level",
+  course_c: "c-low-level",
+  "c-low-level": "c-low-level",
+};
+
 export function getCourseById(courseId: string): ICourse | undefined {
-  return COURSES.find((c) => c.id === courseId || c.courseId === courseId || c.slug === courseId);
+  if (!courseId) return undefined;
+  const normalized = courseId.toLowerCase().trim();
+  const targetId = COURSE_ALIASES[normalized] || normalized;
+  return COURSES.find(
+    (c) =>
+      c.id === targetId ||
+      c.courseId === targetId ||
+      c.slug === targetId ||
+      c.language.toLowerCase() === normalized
+  );
 }
 
 export function getCourseByLanguageAndLevel(language: SupportedLanguage, level?: CourseLevel): ICourse | undefined {

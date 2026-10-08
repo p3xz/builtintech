@@ -9,6 +9,7 @@ import { fetchUserProgress } from "@/services/courseService";
 import { ICourse, ICourseModule } from "@/types/learning";
 import ModuleQuizRunner from "@/components/ModuleQuizRunner";
 import { LoadingState, ErrorState } from "@/components/StatusState";
+import { QuizSkeleton } from "@/components/Skeletons";
 
 export default function ModuleQuizPage() {
   const params = useParams();
@@ -44,7 +45,7 @@ export default function ModuleQuizPage() {
     loadQuiz();
   }, [courseId, moduleId]);
 
-  if (loading) return <LoadingState message="Preparing checkpoint quiz..." />;
+  if (loading) return <QuizSkeleton />;
   if (!course || !currentModule) return <ErrorState title="Quiz Not Found" />;
 
   // Find next module ID if available
