@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase, getBuiltInTechDb, getInsidCodeDb } from "@/lib/mongodb";
+import { connectToDatabase, getDatabase } from "@/lib/mongodb";
 import mongoose from "mongoose";
 
 export const dynamic = "force-dynamic";
@@ -7,32 +7,32 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const startTime = Date.now();
 
-  // 1. Check Built In Tech Database
-  let builtintechStatus = "unavailable";
-  let builtintechLatencyMs = -1;
+  // Check the unified insidcode database
+  let dbStatus = "unavailable";
+  let dbLatencyMs = -1;
   try {
     const t0 = Date.now();
     await connectToDatabase();
     if (mongoose.connection.readyState === 1 && mongoose.connection.db) {
       await mongoose.connection.db.admin().ping();
-      builtintechStatus = "connected";
-      builtintechLatencyMs = Date.now() - t0;
+      dbStatus = "connected";
+      dbLatencyMs = Date.now() - t0;
     }
   } catch {
-    builtintechStatus = "unavailable";
+    dbStatus = "unavailable";
   }
 
-  // 2. Check InsidCode Database
-  let insidcodeStatus = "unavailable";
-  let insidcodeLatencyMs = -1;
-  try {
-    const t0 = Date.now();
-    const insidDb = await getInsidCodeDb();
-    await insidDb.admin().ping();
-    insidcodeStatus = "connected";
-    insidcodeLatencyMs = Date.now() - t0;
-  } catch {
-    insidcodeStatus = "unavailable";
+  // Cross-check with the native driver too
+  if (dbStatus !== "connected") {
+    try {
+      const t0 = Date.now();
+      const db = await getDatabase();
+      await db.admin().ping();
+      dbStatus = "connected";
+      dbLatencyMs = Date.now() - t0;
+    } catch {
+      // already unavailable
+    }
   }
 
   const groqConfigured = Boolean(process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim().length > 0);
@@ -43,23 +43,19 @@ export async function GET() {
     process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
   );
 
-  const isHealthy = builtintechStatus === "connected";
+  const isHealthy = dbStatus === "connected";
   const statusCode = isHealthy ? 200 : 503;
 
   return NextResponse.json(
     {
-      status: isHealthy ? (insidcodeStatus === "connected" ? "ok" : "degraded") : "error",
+      status: isHealthy ? "ok" : "error",
       timestamp: new Date().toISOString(),
       uptimeSeconds: Math.floor(process.uptime()),
       latencyMs: Date.now() - startTime,
       databases: {
-        builtintech: {
-          status: builtintechStatus,
-          latencyMs: builtintechLatencyMs,
-        },
         insidcode: {
-          status: insidcodeStatus,
-          latencyMs: insidcodeLatencyMs,
+          status: dbStatus,
+          latencyMs: dbLatencyMs,
         },
       },
       services: {
@@ -81,4 +77,3 @@ export async function GET() {
     { status: statusCode }
   );
 }
-

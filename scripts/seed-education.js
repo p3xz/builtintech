@@ -21,7 +21,7 @@
 const { MongoClient } = require('mongodb');
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017';
-const DB_NAME = process.env.MONGODB_DB_NAME || 'builtintech';
+const DB_NAME = process.env.MONGODB_DB_NAME || 'insidcode';
 
 // ── 4 PUBLISHED COURSES WITH EXACT MODULE CURRICULA ──
 const PUBLISHED_COURSES = [

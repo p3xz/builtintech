@@ -1,29 +1,31 @@
 import mongoose from "mongoose";
 import { MongoClient, Db } from "mongodb";
 
-function getBuiltInTechUri(): string {
+/**
+ * Single-database architecture: everything lives in the `insidcode` database.
+ *
+ * Environment variables:
+ *   MONGODB_URI            – Atlas connection string (defaults to INSIDCODE_MONGODB_URI)
+ *   MONGODB_DB_NAME        – Database name (defaults to "insidcode")
+ *   INSIDCODE_MONGODB_URI  – Legacy alias, used as fallback for MONGODB_URI
+ *   INSIDCODE_DB_NAME      – Legacy alias, used as fallback for MONGODB_DB_NAME
+ */
+
+function getUri(): string {
   return (
     process.env.MONGODB_URI ||
-    process.env.DATABASE_URL ||
-    "mongodb://127.0.0.1:27017/builtintech"
-  );
-}
-
-function getBuiltInTechDbName(): string {
-  return process.env.MONGODB_DB_NAME || "builtintech";
-}
-
-function getInsidCodeUri(): string {
-  return (
     process.env.INSIDCODE_MONGODB_URI ||
-    process.env.MONGODB_URI ||
     process.env.DATABASE_URL ||
     "mongodb://127.0.0.1:27017/insidcode"
   );
 }
 
-function getInsidCodeDbName(): string {
-  return process.env.INSIDCODE_DB_NAME || "insidcode";
+function getDbName(): string {
+  return (
+    process.env.MONGODB_DB_NAME ||
+    process.env.INSIDCODE_DB_NAME ||
+    "insidcode"
+  );
 }
 
 function sanitizedUri(uri: string): string {
@@ -41,8 +43,6 @@ declare global {
   var mongooseCache: MongooseCache | undefined;
   // eslint-disable-next-line no-var
   var _mongoClientPromise: Promise<MongoClient> | undefined;
-  // eslint-disable-next-line no-var
-  var _insidcodeClientPromise: Promise<MongoClient> | undefined;
 }
 
 let cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
@@ -56,8 +56,8 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
     return cached.conn;
   }
 
-  const uri = getBuiltInTechUri();
-  const dbName = getBuiltInTechDbName();
+  const uri = getUri();
+  const dbName = getDbName();
 
   if (!cached.promise) {
     const opts = {
@@ -74,7 +74,7 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
       })
       .catch((err) => {
         cached.promise = null;
-        console.error("[MongoDB] BuiltInTech mongoose connection failed:", err?.message || err);
+        console.error("[MongoDB] Mongoose connection failed:", err?.message || err);
         console.error("[MongoDB] URI host:", sanitizedUri(uri));
         throw err;
       });
@@ -90,21 +90,21 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
 }
 
 /**
- * Lazy MongoClient for BuiltInTech.
+ * Lazy MongoClient for the unified database.
  * Does NOT connect at import time. Connection starts on first actual use.
  * Failures clear the cached promise so the next call retries instead of
  * reusing a rejected promise. Errors propagate to the caller.
  */
 function getClientPromise(): Promise<MongoClient> {
   if (!global._mongoClientPromise) {
-    const uri = getBuiltInTechUri();
+    const uri = getUri();
     const client = new MongoClient(uri, {
       serverSelectionTimeoutMS: 5000,
     });
     global._mongoClientPromise = client.connect().catch((err) => {
       global._mongoClientPromise = undefined;
       console.error(
-        "[MongoDB] BuiltInTech client connection failed:",
+        "[MongoDB] Client connection failed:",
         err?.message || err
       );
       console.error("[MongoDB] URI host:", sanitizedUri(uri));
@@ -112,31 +112,6 @@ function getClientPromise(): Promise<MongoClient> {
     });
   }
   return global._mongoClientPromise;
-}
-
-/**
- * Lazy MongoClient for InsidCode.
- * Does NOT connect at import time. Connection starts on first actual use.
- * Failures clear the cached promise so the next call retries.
- * Errors propagate to the caller.
- */
-function getInsidcodeClientPromise(): Promise<MongoClient> {
-  if (!global._insidcodeClientPromise) {
-    const uri = getInsidCodeUri();
-    const client = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 5000,
-    });
-    global._insidcodeClientPromise = client.connect().catch((err) => {
-      global._insidcodeClientPromise = undefined;
-      console.error(
-        "[MongoDB] InsidCode client connection failed:",
-        err?.message || err
-      );
-      console.error("[MongoDB] URI host:", sanitizedUri(uri));
-      throw err;
-    });
-  }
-  return global._insidcodeClientPromise;
 }
 
 
@@ -150,33 +125,25 @@ export const clientPromise: Promise<MongoClient> = {
   [Symbol.toStringTag]: "Promise",
 } as Promise<MongoClient>;
 
-export const insidcodeClientPromise: Promise<MongoClient> = {
-  then: (onFulfilled, onRejected) =>
-    getInsidcodeClientPromise().then(onFulfilled, onRejected),
-  catch: (onRejected) => getInsidcodeClientPromise().catch(onRejected),
-  finally: (onFinally) => getInsidcodeClientPromise().finally(onFinally),
-  [Symbol.toStringTag]: "Promise",
-} as Promise<MongoClient>;
+// Legacy alias — points to the same single connection
+export const insidcodeClientPromise: Promise<MongoClient> = clientPromise;
 
 /**
- * Access BuiltInTech Database (users, auth, education progress, practice,
- * curriculum, duels, submissions, Elo, Duel Points, leaderboard, history)
+ * Access the unified database (insidcode).
+ * All collections live here: users, questions, submissions, duelrooms,
+ * courses, modules, lessons, ranks, achievements, etc.
  */
 export async function getDatabase(): Promise<Db> {
   const client = await getClientPromise();
-  return client.db(getBuiltInTechDbName());
+  return client.db(getDbName());
 }
 
+/** @deprecated Use getDatabase() — both point to the same insidcode database */
 export async function getBuiltInTechDb(): Promise<Db> {
   return getDatabase();
 }
 
-/**
- * Access InsidCode Database (questions, problem metadata, starter templates,
- * hidden test cases, difficulty, tags)
- */
+/** Legacy alias — points to the same unified database */
 export async function getInsidCodeDb(): Promise<Db> {
-  const client = await getInsidcodeClientPromise();
-  return client.db(getInsidCodeDbName());
+  return getDatabase();
 }
-

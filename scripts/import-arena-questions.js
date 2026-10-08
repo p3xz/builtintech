@@ -11,7 +11,7 @@
 const { MongoClient } = require('mongodb');
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017';
-const BUILTINTECH_DB_NAME = process.env.MONGODB_DB_NAME || 'builtintech';
+const BUILTINTECH_DB_NAME = process.env.MONGODB_DB_NAME || 'insidcode';
 
 const INSIDCODE_URI = process.env.INSIDCODE_MONGODB_URI || MONGODB_URI;
 const INSIDCODE_DB_NAME = process.env.INSIDCODE_DB_NAME || 'insidcode';

@@ -1,4 +1,4 @@
-import { connectToDatabase, getInsidCodeDb, getBuiltInTechDb } from "./mongodb";
+import { connectToDatabase, getDatabase } from "./mongodb";
 import { Question } from "@/models/Question";
 import { IQuestion, DifficultyLevel } from "@/types";
 import { getServerProblem, getAllServerProblems } from "@/data/problems";
@@ -34,7 +34,7 @@ export async function getPublicProblem(idOrSlug: string): Promise<PublicProblemD
 
   // 1. Try fetching from insidcode.questions first (MongoDB Atlas 330 questions)
   try {
-    const insidcodeDb = await getInsidCodeDb();
+    const insidcodeDb = await getDatabase();
     const rawQuestion = await insidcodeDb.collection("questions").findOne({
       $or: [
         { problemId: cleanId },
@@ -64,7 +64,7 @@ export async function getPublicProblem(idOrSlug: string): Promise<PublicProblemD
     console.warn("[getPublicProblem] insidcode lookup warning:", insidcodeErr);
   }
 
-    // 2. Fallback to builtintech.questions via Mongoose
+    // 2. Fallback to questions via Mongoose model
     try {
       await connectToDatabase();
       const question = await Question.findOne({
@@ -110,7 +110,7 @@ export async function getAllPublishedProblems(filter?: {
 }): Promise<PublicProblemData[]> {
   // 1. Try fetching from insidcode.questions first
   try {
-    const insidcodeDb = await getInsidCodeDb();
+    const insidcodeDb = await getDatabase();
     const query: Record<string, unknown> = {
       isPublished: { $ne: false },
     };
@@ -162,7 +162,7 @@ export async function getAllPublishedProblems(filter?: {
     console.warn("[getAllPublishedProblems] insidcode list warning:", insidcodeErr);
   }
 
-  // 2. Fallback to builtintech.questions via Mongoose
+  // 2. Fallback to questions via Mongoose model
   try {
     await connectToDatabase();
     const query: Record<string, unknown> = { isPublished: true };
@@ -224,7 +224,7 @@ export async function getProblemForJudging(idOrSlug: string): Promise<IQuestion 
 
   // 1. Try insidcode.questions
   try {
-    const insidcodeDb = await getInsidCodeDb();
+    const insidcodeDb = await getDatabase();
     const rawQuestion = await insidcodeDb.collection("questions").findOne({
       $or: [
         { problemId: cleanId },
@@ -259,7 +259,7 @@ export async function getProblemForJudging(idOrSlug: string): Promise<IQuestion 
     console.warn("[getProblemForJudging] insidcode lookup warning:", err);
   }
 
-  // 2. Fallback to builtintech
+  // 2. Fallback to questions via Mongoose model
   try {
     await connectToDatabase();
     const q = await Question.findOne({
